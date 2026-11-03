@@ -9,10 +9,10 @@ This project uses a composite build of a [build-logic](./build-logic) project to
 
 ## Supported loaders
 
-- NeoForge (via [ModDevGradle](https://github.com/neoforged/ModDevGradle))
+- Forge (via [ModDevGradle Legacy](https://github.com/neoforged/ModDevGradle))
 - Fabric (via [Fabric Loom](https://github.com/FabricMC/fabric-loom))
 
-Common code shared between loaders lives in the `common` subproject; each loader has its own subproject (`neoforge`,
+Common code shared between loaders lives in the `common` subproject; each loader has its own subproject (`forge`,
 `fabric`) that depends on it.
 
 ## Usage
@@ -20,7 +20,7 @@ Common code shared between loaders lives in the `common` subproject; each loader
 1. Replace `rootProject.name` in [settings.gradle.kts](./settings.gradle.kts) to individual project name
 2. Update the mod metadata in [gradle.properties](./gradle.properties) (`mod_id`, `mod_group_id`, `mod_name`, `mod_version`,
    `mod_description`, etc.)
-3. Rename the base package (`com.npg418.examplemod`) across `common`, `neoforge`, and `fabric` to match your mod's
+3. Rename the base package (`com.npg418.examplemod`) across `common`, `forge`, and `fabric` to match your mod's
    package
 4. Update each loader metadata template with your mod's metadata
 5. Adjust dependency versions in [`gradle/`](./gradle) Version Catalogs as needed
@@ -33,10 +33,10 @@ Common code shared between loaders lives in the `common` subproject; each loader
 | Task                                                              | Description                                       |
 |-------------------------------------------------------------------|---------------------------------------------------|
 | `./gradlew build`                                                 | Builds all subprojects                            |
-| `./gradlew :neoforge:runClient`                                   | Launches the game client with the NeoForge loader |
+| `./gradlew :forge:runClient`                                      | Launches the game client with the Forge loader    |
 | `./gradlew :fabric:runClient`                                     | Launches the game client with the Fabric loader   |
-| `./gradlew :neoforge:runServer` / `./gradlew :fabric:runServer`   | Launches a dedicated server                       |
-| `./gradlew :neoforge:runDatagen` / `./gradlew :fabric:runDatagen` | Runs data generation                              |
+| `./gradlew :forge:runServer` / `./gradlew :fabric:runServer`      | Launches a dedicated server                       |
+| `./gradlew :forge:runDatagen` / `./gradlew :fabric:runDatagen`    | Runs data generation                              |
 
 ## Project structure
 
@@ -44,11 +44,11 @@ Common code shared between loaders lives in the `common` subproject; each loader
 .
 ├── build-logic/      # Composite build providing shared convention plugins
 ├── common/           # Loader-agnostic mod code
-├── neoforge/         # NeoForge-specific entrypoint and code
+├── forge/            # Forge-specific entrypoint and code
 ├── fabric/           # Fabric-specific entrypoint and code
 ├── gradle/
 │   ├── libs.versions.toml         # Shared Version Catalog
-│   ├── neoforgeLibs.versions.toml # NeoForge Version Catalog
+│   ├── forgeLibs.versions.toml    # Forge Version Catalog
 │   └── fabricLibs.versions.toml   # Fabric Version Catalog
 ├── gradle.properties # Mod metadata and build configuration
 └── settings.gradle.kts
@@ -56,7 +56,7 @@ Common code shared between loaders lives in the `common` subproject; each loader
 
 ## Version Catalog
 
-Dependency and plugin versions are organized into separated Version Catalogs under `gradle/` (`libs`, `neoforgeLibs`, `fabricLibs`). Convention plugins in `build-logic` apply shared configuration
+Dependency and plugin versions are organized into separated Version Catalogs under `gradle/` (`libs`, `forgeLibs`, `fabricLibs`). Convention plugins in `build-logic` apply shared configuration
 (Java toolchain, repositories, common dependencies) to each loader subproject to keep per-loader `build.gradle.kts`
 files minimal.
 
