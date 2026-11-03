@@ -1,0 +1,21 @@
+[versions]
+# https://files.minecraftforge.net/net/minecraftforge/forge/
+forge = { prefer = "47.4.28", strictly = "[47,)" }
+
+# https://github.com/SpongePowered/Mixin/releases
+mixin = "0.8.5"
+
+# https://docs.google.com/spreadsheets/d/1v8K90PBa5qPFrlHBA8PSqlBTYCcp078o5E2XQbt5BUs/edit?usp=sharing
+kotlinforforge = { prefer = "4.12.0", strictly = "[4,5)" }
+
+# https://www.curseforge.com/minecraft/mc-mods/configured/files/all?gameVersionTypeId=1
+configured = "5180900" # v2.2.3
+
+[libraries]
+#noinspection UnusedVersionCatalogEntry
+forge = { group = "net.minecraftforge", name = "forge", version.ref = "forge" }
+mixin = { group = "org.spongepowered", name = "mixin", version.ref = "mixin" }
+
+kotlinforforge = { group = "thedarkcolour", name = "kotlinforforge", version.ref = "kotlinforforge" }
+
+configured = { group = "curse.maven", name = "configured-457570", version.ref = "configured" }

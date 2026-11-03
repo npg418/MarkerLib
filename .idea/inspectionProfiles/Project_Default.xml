@@ -1,0 +1,31 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="KaptKotlinCompilerPlugin" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="UnresolvedFabricModJsonReference" enabled="true" level="TEXT ATTRIBUTES" enabled_by_default="true" editorAttributes="CONSIDERATION_ATTRIBUTES" />
+    <inspection_tool class="VulnerableLibrariesLocal" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="isIgnoringEnabled" value="true" />
+      <option name="ignoredModules">
+        <list>
+          <option value="ExampleMod.common" />
+          <option value="ExampleMod.common" />
+          <option value="ExampleMod.common" />
+        </list>
+      </option>
+      <option name="ignoredPackages">
+        <list>
+          <option value="org.ow2.asm:asm-commons:9.8" />
+          <option value="org.ow2.asm:asm:9.8" />
+          <option value="org.ow2.asm:asm-analysis:9.8" />
+        </list>
+      </option>
+      <option name="ignoredReasons">
+        <list>
+          <option value="悪用不可能" />
+          <option value="悪用不可能" />
+          <option value="悪用不可能" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>

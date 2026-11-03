@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="JsonSchemaMappingsProjectConfiguration">
+    <state>
+      <map>
+        <entry key="Sponge Mixin configuration">
+          <value>
+            <SchemaInfo>
+              <option name="generatedName" value="新規スキーマ" />
+              <option name="name" value="Sponge Mixin configuration" />
+              <option name="relativePathToSchema" value="https://www.schemastore.org/sponge-mixins.json" />
+              <option name="patterns">
+                <list>
+                  <Item>
+                    <option name="pattern" value="true" />
+                    <option name="path" value="**/*.mixins.json" />
+                    <option name="mappingKind" value="Pattern" />
+                  </Item>
+                </list>
+              </option>
+            </SchemaInfo>
+          </value>
+        </entry>
+        <entry key="fabric.mod.json">
+          <value>
+            <SchemaInfo>
+              <option name="name" value="fabric.mod.json" />
+              <option name="relativePathToSchema" value="https://www.schemastore.org/fabric.mod.json" />
+              <option name="applicationDefined" value="true" />
+              <option name="patterns">
+                <list>
+                  <Item>
+                    <option name="pattern" value="true" />
+                    <option name="path" value="**/fabric.mod.json" />
+                    <option name="mappingKind" value="Pattern" />
+                  </Item>
+                </list>
+              </option>
+            </SchemaInfo>
+          </value>
+        </entry>
+      </map>
+    </state>
+  </component>
+</project>
