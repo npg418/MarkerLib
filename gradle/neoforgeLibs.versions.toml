@@ -1,0 +1,17 @@
+[versions]
+# https://projects.neoforged.net/neoforged/neoforge
+neoforge = { prefer = "21.1.248", strictly = "[21,21.1]" }
+
+# https://docs.google.com/spreadsheets/d/1v8K90PBa5qPFrlHBA8PSqlBTYCcp078o5E2XQbt5BUs/edit?usp=sharing
+kotlinforforge = { prefer = "5.10.0", strictly = "[5.10,6)" }
+
+# https://www.curseforge.com/minecraft/mc-mods/configured/files/all?gameVersionTypeId=6
+configured = "7276577" # v2.6.3
+
+[libraries]
+#noinspection UnusedVersionCatalogEntry
+neoforge = { group = "net.neoforged", name = "neoforge", version.ref = "neoforge" }
+
+kotlinforforge = { group = "thedarkcolour", name = "kotlinforforge-neoforge", version.ref = "kotlinforforge" }
+
+configured = { group = "curse.maven", name = "configured-457570", version.ref = "configured" }
