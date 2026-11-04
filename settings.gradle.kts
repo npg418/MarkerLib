@@ -24,7 +24,7 @@ dependencyResolutionManagement {
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
-rootProject.name = "ExampleMod"
+rootProject.name = "MarkerLib"
 
 includeBuild("build-logic")
 

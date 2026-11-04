@@ -20,7 +20,7 @@ Common code shared between loaders lives in the `common` subproject; each loader
 1. Replace `rootProject.name` in [settings.gradle.kts](./settings.gradle.kts) to individual project name
 2. Update the mod metadata in [gradle.properties](./gradle.properties) (`mod_id`, `mod_group_id`, `mod_name`, `mod_version`,
    `mod_description`, etc.)
-3. Rename the base package (`com.npg418.examplemod`) across `common`, `forge`, and `fabric` to match your mod's
+3. Rename the base package (`com.npg418.markerlib`) across `common`, `forge`, and `fabric` to match your mod's
    package
 4. Update each loader metadata template with your mod's metadata
 5. Adjust dependency versions in [`gradle/`](./gradle) Version Catalogs as needed

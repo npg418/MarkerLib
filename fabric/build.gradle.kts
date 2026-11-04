@@ -67,11 +67,11 @@ val generateModJson = tasks.register<FabricModJsonV1Task>("generateModJson") {
         licenses.add(prop("mod_license"))
         entrypoint("main") {
             adapter = "kotlin"
-            value = "com.npg418.examplemod.FabricMain"
+            value = "com.npg418.markerlib.FabricMain"
         }
         entrypoint("fabric-datagen") {
             adapter = "kotlin"
-            value = "com.npg418.examplemod.datagen.ExampleModDataGenerator"
+            value = "com.npg418.markerlib.datagen.MarkerLibDataGenerator"
         }
         modId.get().let {
             mixin("$it.mixins.json")
