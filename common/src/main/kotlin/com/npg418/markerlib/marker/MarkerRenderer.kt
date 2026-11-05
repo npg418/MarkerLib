@@ -1,6 +1,7 @@
 package com.npg418.markerlib.marker
 
 import com.mojang.math.Axis
+import com.npg418.markerlib.config.CommonConfig
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
 import org.joml.Matrix4f
@@ -52,11 +53,12 @@ object MarkerRenderer {
     }
 
     private fun drawIcon(g: GuiGraphics, m: Marker, x: Float, y: Float, dist: Double) {
+        val s = (CommonConfig.Rendering.baseIconSize * m.size).roundToInt().coerceAtLeast(1)
         val font = Minecraft.getInstance().font
         g.pose().pushPose()
         g.pose().translate(x, y, 0f)
         tint(g, m.color) {
-            g.blit(m.icon, -8, -8, 0f, 0f, 16, 16, 16, 16)
+            g.blit(m.icon, -s / 2, -s / 2, s, s, 0f, 0f, 1,1,1,1)
         }
         g.drawCenteredString(font, "${dist.roundToInt()}m", 0, 10, m.color)
         g.pose().popPose()
@@ -68,11 +70,12 @@ object MarkerRenderer {
         val dx = sx - cx
         val dy = sy - cy
         val k = min((cx - MARGIN) / abs(dx), (cy - MARGIN) / abs(dy))
+        val s = (CommonConfig.Rendering.baseIconSize * m.size).roundToInt().coerceAtLeast(1)
         g.pose().pushPose()
         g.pose().translate(cx + dx * k, cy + dy * k, 0f)
         g.pose().mulPose(Axis.ZP.rotation(atan2(dy, dx)))
         tint(g, m.color) {
-            g.blit(m.arrowIcon, -8, -8, 0f, 0f, 16, 16, 16, 16)
+            g.blit(m.arrowIcon, -s / 2, -s / 2, s, s, 0f, 0f, 1,1,1,1)
         }
         g.pose().popPose()
     }

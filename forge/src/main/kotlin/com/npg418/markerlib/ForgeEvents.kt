@@ -11,10 +11,9 @@ import net.minecraftforge.fml.common.Mod
 
 @Mod.EventBusSubscriber(modid = MarkerLib.MODID, value = [Dist.CLIENT], bus = Mod.EventBusSubscriber.Bus.MOD)
 object ClientModEvents {
-//    @JvmStatic
     @SubscribeEvent
     fun onRegisterOverlays(e: RegisterGuiOverlaysEvent) {
-        e.registerAboveAll("markers") { _, g, partialTick, _, _ ->
+        e.registerBelowAll( "markers") { _, g, partialTick, _, _ ->
             val testMarker = Marker("test", Marker.Target.Fixed(Vec3(0.5, 80.0, 0.5)))
             MarkerRenderer.render(g, listOf(testMarker), partialTick)
         }
@@ -23,7 +22,6 @@ object ClientModEvents {
 
 @Mod.EventBusSubscriber(modid = MarkerLib.MODID, value = [Dist.CLIENT], bus = Mod.EventBusSubscriber.Bus.FORGE)
 object ClientForgeEvents {
-//    @JvmStatic
     @SubscribeEvent
     fun onRenderLevel(e: RenderLevelStageEvent) {
         if (e.stage == RenderLevelStageEvent.Stage.AFTER_PARTICLES) {

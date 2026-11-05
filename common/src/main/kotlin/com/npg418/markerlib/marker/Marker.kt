@@ -15,6 +15,7 @@ data class Marker(
     val target: Target,
     val icon: ResourceLocation = DEFAULT_ICON,
     val arrowIcon: ResourceLocation = DEFAULT_ARROW,
+    val size: Float = 1f,
     val color: Int = 0xFFFF3030.toInt(),
     val label: String? = null,
     val visibleTo: Set<UUID> = emptySet(),
@@ -28,6 +29,7 @@ data class Marker(
             target = Target.read(buf),
             icon = buf.readResourceLocation(),
             arrowIcon = buf.readResourceLocation(),
+            size = buf.readFloat(),
             color = buf.readInt(),
             label = buf.readNullable { it.readUtf() },
         )
@@ -40,6 +42,7 @@ data class Marker(
         target.write(buf)
         buf.writeResourceLocation(icon)
         buf.writeResourceLocation(arrowIcon)
+        buf.writeFloat(size)
         buf.writeInt(color)
         buf.writeNullable(label) { b, s -> b.writeUtf(s) }
     }
