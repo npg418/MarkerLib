@@ -4,32 +4,21 @@ import com.npg418.markerlib.config.ForgeConfigBuilder
 import com.npg418.markerlib.datagen.ModItemModelProvider
 import com.npg418.markerlib.datagen.ModLanguageProvider
 import com.npg418.markerlib.init.CONFIGS
-import com.npg418.markerlib.init.ITEM_MAP
-import net.minecraft.world.item.Item
 import net.minecraftforge.data.event.GatherDataEvent
 import net.minecraftforge.eventbus.api.SubscribeEvent
 import net.minecraftforge.fml.common.Mod
-import net.minecraftforge.registries.DeferredRegister
-import net.minecraftforge.registries.ForgeRegistries
 import thedarkcolour.kotlinforforge.forge.LOADING_CONTEXT
 import thedarkcolour.kotlinforforge.forge.MOD_BUS
 
 
 @Mod(MarkerLib.MODID)
 class ForgeMain {
-    companion object {
-        val ITEMS: DeferredRegister<Item> = DeferredRegister.create(ForgeRegistries.ITEMS, MarkerLib.MODID)
-    }
-
     init {
         MarkerLib.LOGGER.debug("Hello from Forge Mod!")
 
         MOD_BUS.register(this)
 
         CONFIGS.forEach { ForgeConfigBuilder(it).register(LOADING_CONTEXT) }
-
-        ITEM_MAP.forEach(ITEMS::register)
-        ITEMS.register(MOD_BUS)
     }
 
     @SubscribeEvent
