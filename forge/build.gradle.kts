@@ -33,7 +33,7 @@ legacyForge {
                 "--output",
                 file("src/main/generated").absolutePath,
                 "--existing",
-                file("src/main/resources").absolutePath
+                file("src/main/resources").absolutePath,
             )
         }
 
@@ -59,47 +59,49 @@ sourceSets.main {
     resources.srcDir("src/main/generated")
 }
 
-val generateModsToml = tasks.register<ForgeModsTomlTask>("generateModsToml") {
-    description = "Generates forge mod metadata"
-    outputFile = generatedResourcesDir.map { it.file("META-INF/mods.toml") }
+val generateModsToml =
+    tasks.register<ForgeModsTomlTask>("generateModsToml") {
+        description = "Generates forge mod metadata"
+        outputFile = generatedResourcesDir.map { it.file("META-INF/mods.toml") }
 
-    toml {
-        modLoader = "kotlinforforge"
-        loaderVersion = forgeLibs.kotlinforforge.versionRange
-        license = prop("mod_license")
+        toml {
+            modLoader = "kotlinforforge"
+            loaderVersion = forgeLibs.kotlinforforge.versionRange
+            license = prop("mod_license")
 
-        mod(prop("mod_id").get()) {
-            version = prop("mod_version")
-            displayName = prop("mod_name")
-            authors = prop("mod_authors")
-            description = prop("mod_description")
-        }
-
-        dependencies(prop("mod_id").get()) {
-            depends("forge") {
-                mandatory = true
-                versionRange = forgeLibs.forge.versionRange
-                ordering = Ordering.NONE
-                side = Side.BOTH
+            mod(prop("mod_id").get()) {
+                version = prop("mod_version")
+                displayName = prop("mod_name")
+                authors = prop("mod_authors")
+                description = prop("mod_description")
             }
-            depends("minecraft") {
-                mandatory = true
-                versionRange = libs.minecraft.versionRange
-                ordering = Ordering.NONE
-                side = Side.BOTH
+
+            dependencies(prop("mod_id").get()) {
+                depends("forge") {
+                    mandatory = true
+                    versionRange = forgeLibs.forge.versionRange
+                    ordering = Ordering.NONE
+                    side = Side.BOTH
+                }
+                depends("minecraft") {
+                    mandatory = true
+                    versionRange = libs.minecraft.versionRange
+                    ordering = Ordering.NONE
+                    side = Side.BOTH
+                }
             }
         }
     }
-}
-val generatePackMcmeta = tasks.register<PackMcmetaTask>("generatePackMcmeta") {
-    description = "Generates resource pack metadata"
-    outputFile = generatedResourcesDir.map { it.file("pack.mcmeta") }
+val generatePackMcmeta =
+    tasks.register<PackMcmetaTask>("generatePackMcmeta") {
+        description = "Generates resource pack metadata"
+        outputFile = generatedResourcesDir.map { it.file("pack.mcmeta") }
 
-    pack {
-        description = "${prop("mod_name").get()} resource"
-        packFormat = 15
+        pack {
+            description = "${prop("mod_name").get()} resource"
+            packFormat = 15
+        }
     }
-}
 registerMetadataTask(generateModsToml, generatePackMcmeta)
 prop("mod_id").get().let {
     mixin {
@@ -109,7 +111,7 @@ prop("mod_id").get().let {
     }
     tasks.jar {
         manifest.attributes(
-            "MixinConfigs" to "$it.mixins.json,$it.forge.mixins.json"
+            "MixinConfigs" to "$it.mixins.json,$it.forge.mixins.json",
         )
     }
 }

@@ -4,20 +4,26 @@ package com.npg418.markerlib.config.api
 
 @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
 @MustBeDocumented
-annotation class Name(val value: String)
+annotation class Name(
+    val value: String,
+)
 
 @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
 @MustBeDocumented
-annotation class Comment(val value: String)
+annotation class Comment(
+    val value: String,
+)
 
 @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
 @MustBeDocumented
-annotation class Translation(val value: String)
+annotation class Translation(
+    val value: String,
+)
 
 @Target(AnnotationTarget.PROPERTY)
 @MustBeDocumented
 annotation class WorldRestart
 
-//@Target(AnnotationTarget.PROPERTY)
-//@MustBeDocumented
-//annotation class GameRestart
+// @Target(AnnotationTarget.PROPERTY)
+// @MustBeDocumented
+// annotation class GameRestart

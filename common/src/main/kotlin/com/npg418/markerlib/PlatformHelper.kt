@@ -4,6 +4,7 @@ import java.util.*
 
 interface PlatformHelper {
     val isDevEnvironment: Boolean
+
     fun isModLoaded(id: String): Boolean
 }
 

@@ -18,7 +18,7 @@ class FabricMain : ModInitializer {
             Registry.register(
                 BuiltInRegistries.ITEM,
                 ResourceLocation(MarkerLib.MODID, name),
-                item.get()
+                item.get(),
             )
         }
     }

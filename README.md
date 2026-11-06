@@ -18,7 +18,8 @@ Common code shared between loaders lives in the `common` subproject; each loader
 ## Usage
 
 1. Replace `rootProject.name` in [settings.gradle.kts](./settings.gradle.kts) to individual project name
-2. Update the mod metadata in [gradle.properties](./gradle.properties) (`mod_id`, `mod_group_id`, `mod_name`, `mod_version`,
+2. Update the mod metadata in [gradle.properties](./gradle.properties) (`mod_id`, `mod_group_id`, `mod_name`,
+   `mod_version`,
    `mod_description`, etc.)
 3. Rename the base package (`com.npg418.markerlib`) across `common`, `forge`, and `fabric` to match your mod's
    package
@@ -30,13 +31,13 @@ Common code shared between loaders lives in the `common` subproject; each loader
 
 ## Common Gradle tasks
 
-| Task                                                              | Description                                       |
-|-------------------------------------------------------------------|---------------------------------------------------|
-| `./gradlew build`                                                 | Builds all subprojects                            |
-| `./gradlew :forge:runClient`                                      | Launches the game client with the Forge loader    |
-| `./gradlew :fabric:runClient`                                     | Launches the game client with the Fabric loader   |
-| `./gradlew :forge:runServer` / `./gradlew :fabric:runServer`      | Launches a dedicated server                       |
-| `./gradlew :forge:runDatagen` / `./gradlew :fabric:runDatagen`    | Runs data generation                              |
+| Task                                                           | Description                                     |
+|----------------------------------------------------------------|-------------------------------------------------|
+| `./gradlew build`                                              | Builds all subprojects                          |
+| `./gradlew :forge:runClient`                                   | Launches the game client with the Forge loader  |
+| `./gradlew :fabric:runClient`                                  | Launches the game client with the Fabric loader |
+| `./gradlew :forge:runServer` / `./gradlew :fabric:runServer`   | Launches a dedicated server                     |
+| `./gradlew :forge:runDatagen` / `./gradlew :fabric:runDatagen` | Runs data generation                            |
 
 ## Project structure
 
@@ -56,8 +57,9 @@ Common code shared between loaders lives in the `common` subproject; each loader
 
 ## Version Catalog
 
-Dependency and plugin versions are organized into separated Version Catalogs under `gradle/` (`libs`, `forgeLibs`, `fabricLibs`). Convention plugins in `build-logic` apply shared configuration
-(Java toolchain, repositories, common dependencies) to each loader subproject to keep per-loader `build.gradle.kts`
+Dependency and plugin versions are organized into separated Version Catalogs under `gradle/` (`libs`, `forgeLibs`,
+`fabricLibs`). Convention plugins in `build-logic` apply shared configuration (Java toolchain, repositories, common
+dependencies) to each loader subproject to keep per-loader `build.gradle.kts`
 files minimal.
 
 ## License

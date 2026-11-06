@@ -25,18 +25,23 @@ java {
     withJavadocJar()
 }
 
-val hotswapJvmArgs = provider {
-    val mixinJar = configurations.runtimeClasspath.get()
-        .copyRecursive()
-        .resolvedConfiguration
-        .resolvedArtifacts
-        .firstOrNull { it.moduleVersion.id.group == "net.fabricmc" && it.moduleVersion.id.name == "sponge-mixin" }
+val hotswapJvmArgs =
+    provider {
+        val mixinJar =
+            configurations.runtimeClasspath
+                .get()
+                .copyRecursive()
+                .resolvedConfiguration
+                .resolvedArtifacts
+                .firstOrNull {
+                    it.moduleVersion.id.group == "net.fabricmc" && it.moduleVersion.id.name == "sponge-mixin"
+                }
 
-    listOfNotNull(
-        "-XX:+AllowEnhancedClassRedefinition",
-        mixinJar?.let { "-javaagent:${it.file.absolutePath}" }
-    )
-}
+        listOfNotNull(
+            "-XX:+AllowEnhancedClassRedefinition",
+            mixinJar?.let { "-javaagent:${it.file.absolutePath}" },
+        )
+    }
 extensions.add<Provider<List<String>>>("hotswapJvmArgs", hotswapJvmArgs)
 
 val generatedResourcesDir = layout.buildDirectory.dir("generated/resources")

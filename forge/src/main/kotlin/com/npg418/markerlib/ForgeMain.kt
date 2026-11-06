@@ -10,7 +10,6 @@ import net.minecraftforge.fml.common.Mod
 import thedarkcolour.kotlinforforge.forge.LOADING_CONTEXT
 import thedarkcolour.kotlinforforge.forge.MOD_BUS
 
-
 @Mod(MarkerLib.MODID)
 class ForgeMain {
     init {
@@ -29,11 +28,11 @@ class ForgeMain {
 
         generator.addProvider(
             event.includeClient(),
-            ModItemModelProvider(output, existingFileHelper)
+            ModItemModelProvider(output, existingFileHelper),
         )
         generator.addProvider(
             event.includeClient(),
-            ModLanguageProvider(output)
+            ModLanguageProvider(output),
         )
     }
 }

@@ -36,7 +36,7 @@ sealed class ValidatedConfigProperty<T : Any>(default: T) : ConfigProperty<T>(de
     }
 }
 
-infix fun <T: Any> ValidatedConfigProperty<T>.validator(v: (Any?) -> Boolean) = apply {
+infix fun <T : Any> ValidatedConfigProperty<T>.validator(v: (Any?) -> Boolean) = apply {
     validator = v
 }
 
@@ -48,7 +48,7 @@ class ListConfigProperty<E : Any> internal constructor(
     default: List<E>,
     val newElement: () -> E,
     val elementValidator: (Any?) -> Boolean,
-    val allowEmpty: Boolean
+    val allowEmpty: Boolean,
 ) : ConfigProperty<List<E>>(default)
 
 class RangedConfigProperty<T : Comparable<T>> internal constructor(default: T, val range: ClosedRange<T>) :

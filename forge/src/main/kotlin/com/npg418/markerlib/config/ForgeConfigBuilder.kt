@@ -10,7 +10,9 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotation
 
-class ForgeConfigBuilder(private val spec: ConfigSpec) : ConfigTreeWalker(LOGGER) {
+class ForgeConfigBuilder(
+    private val spec: ConfigSpec,
+) : ConfigTreeWalker(LOGGER) {
     companion object {
         private val LOGGER = LogUtils.getLogger()
     }
@@ -24,7 +26,7 @@ class ForgeConfigBuilder(private val spec: ConfigSpec) : ConfigTreeWalker(LOGGER
             },
             onFailure = {
                 LOGGER.error("An error occurred while registering {}.", spec::class.simpleName, it)
-            }
+            },
         )
     }
 
@@ -36,7 +38,7 @@ class ForgeConfigBuilder(private val spec: ConfigSpec) : ConfigTreeWalker(LOGGER
     override fun onSection(
         name: String,
         sectionClass: KClass<*>,
-        visitChildren: () -> Unit
+        visitChildren: () -> Unit,
     ) {
         applyCommonMeta(sectionClass)
         builder.push(name)
@@ -50,7 +52,7 @@ class ForgeConfigBuilder(private val spec: ConfigSpec) : ConfigTreeWalker(LOGGER
     override fun onProperty(
         name: String,
         property: KProperty1<out Any, *>,
-        delegate: ConfigProperty<*>
+        delegate: ConfigProperty<*>,
     ) {
         applyCommonMeta(property)
         property.findAnnotation<WorldRestart>()?.let { builder.worldRestart() }
@@ -70,21 +72,32 @@ class ForgeConfigBuilder(private val spec: ConfigSpec) : ConfigTreeWalker(LOGGER
         d.setter = this::set
     }
 
-    private fun <T : Any> bind(name: String, d: NormalConfigProperty<T>) {
-        val configValue = d.validator?.let {
-            builder.define(name, d.default, it)
-        } ?: builder.define(name, d.default)
+    private fun <T : Any> bind(
+        name: String,
+        d: NormalConfigProperty<T>,
+    ) {
+        val configValue =
+            d.validator?.let {
+                builder.define(name, d.default, it)
+            } ?: builder.define(name, d.default)
         configValue.bind(d)
     }
 
-    private fun <T : Enum<T>> bind(name: String, d: EnumConfigProperty<T>) {
-        val configValue = d.validator?.let {
-            builder.defineEnum(name, d.default, it)
-        } ?: builder.defineEnum(name, d.default)
+    private fun <T : Enum<T>> bind(
+        name: String,
+        d: EnumConfigProperty<T>,
+    ) {
+        val configValue =
+            d.validator?.let {
+                builder.defineEnum(name, d.default, it)
+            } ?: builder.defineEnum(name, d.default)
         configValue.bind(d)
     }
 
-    private fun <E : Any> bind(name: String, d: ListConfigProperty<E>) {
+    private fun <E : Any> bind(
+        name: String,
+        d: ListConfigProperty<E>,
+    ) {
         if (d.allowEmpty) {
             builder.defineListAllowEmpty(name, d.default, /* d.newElement, */ d.elementValidator)
         } else {
@@ -92,13 +105,20 @@ class ForgeConfigBuilder(private val spec: ConfigSpec) : ConfigTreeWalker(LOGGER
         }.bind(d)
     }
 
-    private fun <T : Comparable<T>> bind(name: String, d: RangedConfigProperty<T>) {
+    private fun <T : Comparable<T>> bind(
+        name: String,
+        d: RangedConfigProperty<T>,
+    ) {
         @Suppress("UNCHECKED_CAST")
-        builder.defineInRange(name, d.default, d.range.start, d.range.endInclusive, d.default::class.java as Class<T>)
+        builder
+            .defineInRange(name, d.default, d.range.start, d.range.endInclusive, d.default::class.java as Class<T>)
             .bind(d)
     }
 
-    private fun <T : Any> bind(name: String, d: OneOfConfigProperty<T>) {
+    private fun <T : Any> bind(
+        name: String,
+        d: OneOfConfigProperty<T>,
+    ) {
         builder.defineInList(name, d.default, d.allowedValues).bind(d)
     }
 }

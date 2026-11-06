@@ -58,10 +58,12 @@ data class Marker(
         }
 
         fun resolve(level: Level, partialTick: Float): Vec3?
+
         fun write(buf: FriendlyByteBuf)
 
         data class Fixed(val pos: Vec3) : Target {
             override fun resolve(level: Level, partialTick: Float) = pos
+
             override fun write(buf: FriendlyByteBuf) {
                 buf.writeByte(0)
                 buf.writeVec3(pos)
@@ -70,8 +72,10 @@ data class Marker(
 
         data class Entity(val uuid: UUID, val yOffset: Double = 0.5) : Target {
             override fun resolve(level: Level, partialTick: Float): Vec3? {
-                val e = (level as? ClientLevel)?.entitiesForRendering()
-                    ?.firstOrNull { it.uuid == uuid } ?: return null
+                val e =
+                    (level as? ClientLevel)
+                        ?.entitiesForRendering()
+                        ?.firstOrNull { it.uuid == uuid } ?: return null
                 return e.getPosition(partialTick).add(0.0, e.bbHeight + yOffset, 0.0)
             }
 
@@ -84,8 +88,10 @@ data class Marker(
 
         data class Block(val pos: BlockPos) : Target {
             override fun resolve(level: Level, partialTick: Float): Vec3 = Vec3.atCenterOf(pos)
+
             override fun write(buf: FriendlyByteBuf) {
-                buf.writeByte(2); buf.writeBlockPos(pos)
+                buf.writeByte(2)
+                buf.writeBlockPos(pos)
             }
         }
     }

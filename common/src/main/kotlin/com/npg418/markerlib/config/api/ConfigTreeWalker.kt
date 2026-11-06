@@ -7,18 +7,37 @@ import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.jvm.isAccessible
 
-abstract class ConfigTreeWalker(private val logger: Logger) {
-    abstract fun onSection(name: String, sectionClass: KClass<*>, visitChildren: () -> Unit)
-    abstract fun onProperty(name: String, property: KProperty1<out Any, *>, delegate: ConfigProperty<*>)
+abstract class ConfigTreeWalker(
+    private val logger: Logger,
+) {
+    abstract fun onSection(
+        name: String,
+        sectionClass: KClass<*>,
+        visitChildren: () -> Unit,
+    )
+
+    abstract fun onProperty(
+        name: String,
+        property: KProperty1<out Any, *>,
+        delegate: ConfigProperty<*>,
+    )
 
     protected fun walkRoot(kClass: KClass<out ConfigSpec>): Result<Unit> {
-        val instance = kClass.objectInstance
-            ?: return Result.failure(IllegalStateException("Could not register config class ${kClass.qualifiedName} because it is not object class."))
+        val instance =
+            kClass.objectInstance
+                ?: return Result.failure(
+                    IllegalStateException(
+                        "Could not register config class ${kClass.qualifiedName} because it is not object class.",
+                    ),
+                )
         walk(kClass, instance)
         return Result.success(Unit)
     }
 
-    private fun walk(kClass: KClass<*>, instance: Any) {
+    private fun walk(
+        kClass: KClass<*>,
+        instance: Any,
+    ) {
         kClass.declaredMemberProperties.forEach { property ->
             val name = property.findAnnotation<Name>()?.value ?: property.name
             property.isAccessible = true
@@ -29,7 +48,7 @@ abstract class ConfigTreeWalker(private val logger: Logger) {
                     "Property {} in class {} is not a {}. Skipping.",
                     name,
                     instance::class.qualifiedName,
-                    ConfigProperty::class.simpleName
+                    ConfigProperty::class.simpleName,
                 )
                 return@forEach
             }
@@ -41,7 +60,7 @@ abstract class ConfigTreeWalker(private val logger: Logger) {
                 logger.warn(
                     "Nested class {} inside config class {} is not an object. Skipping.",
                     nestedClass.qualifiedName,
-                    kClass.qualifiedName
+                    kClass.qualifiedName,
                 )
                 return@forEach
             }

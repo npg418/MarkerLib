@@ -13,7 +13,7 @@ import net.minecraftforge.fml.common.Mod
 object ClientModEvents {
     @SubscribeEvent
     fun onRegisterOverlays(e: RegisterGuiOverlaysEvent) {
-        e.registerBelowAll( "markers") { _, g, partialTick, _, _ ->
+        e.registerBelowAll("markers") { _, g, partialTick, _, _ ->
             val testMarker = Marker("test", Marker.Target.Fixed(Vec3(0.5, 80.0, 0.5)))
             MarkerRenderer.render(g, listOf(testMarker), partialTick)
         }

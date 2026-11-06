@@ -13,5 +13,5 @@ fun FriendlyByteBuf.writeVec3(v: Vec3): FriendlyByteBuf {
 fun FriendlyByteBuf.readVec3(): Vec3 = Vec3(
     readDouble(),
     readDouble(),
-    readDouble()
+    readDouble(),
 )

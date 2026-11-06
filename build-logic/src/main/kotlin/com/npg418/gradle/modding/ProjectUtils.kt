@@ -26,7 +26,11 @@ fun Project.registerMetadataTask(vararg tasks: TaskProvider<*>) {
         named("sourcesJar") { dependsOn(*tasks) }
     }
 
-    rootProject.plugins.withId(libs.plugins.idea.ext.get().pluginId) {
+    rootProject.plugins.withId(
+        libs.plugins.idea.ext
+            .get()
+            .pluginId,
+    ) {
         rootProject.extensions.configure<IdeaModel> {
             project { settings { taskTriggers { afterSync(*tasks) } } }
         }

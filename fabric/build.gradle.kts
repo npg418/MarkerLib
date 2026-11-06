@@ -52,38 +52,64 @@ fun mavenToFabric(range: String): List<String> {
     }
 }
 
-val generateModJson = tasks.register<FabricModJsonV1Task>("generateModJson") {
-    description = "Generates fabric mod metadata"
-    outputFile = generatedResourcesDir.map { it.file("fabric.mod.json") }
+val generateModJson =
+    tasks.register<FabricModJsonV1Task>("generateModJson") {
+        description = "Generates fabric mod metadata"
+        outputFile = generatedResourcesDir.map { it.file("fabric.mod.json") }
 
-    json {
-        modId = prop("mod_id")
-        version = prop("mod_version")
-        name = prop("mod_name")
-        description = prop("mod_description")
-        prop("mod_authors").get().split(",").forEach { name ->
-            author(name)
+        json {
+            modId = prop("mod_id")
+            version = prop("mod_version")
+            name = prop("mod_name")
+            description = prop("mod_description")
+            prop("mod_authors").get().split(",").forEach { name ->
+                author(name)
+            }
+            licenses.add(prop("mod_license"))
+            entrypoint("main") {
+                adapter = "kotlin"
+                value = "com.npg418.markerlib.FabricMain"
+            }
+            entrypoint("fabric-datagen") {
+                adapter = "kotlin"
+                value = "com.npg418.markerlib.datagen.MarkerLibDataGenerator"
+            }
+            modId.get().let {
+                mixin("$it.mixins.json")
+                mixin("$it.fabric.mixins.json")
+            }
+            depends(
+                "fabricloader",
+                fabricLibs.fabric.loader.versionRange
+                    .map(::mavenToFabric)
+                    .get(),
+            )
+            depends(
+                "minecraft",
+                libs.minecraft.versionRange
+                    .map(::mavenToFabric)
+                    .get(),
+            )
+            depends(
+                "java",
+                java.toolchain.languageVersion
+                    .map { ">=$it" }
+                    .get(),
+            )
+            depends(
+                "fabric-api",
+                fabricLibs.fabric.api.versionRange
+                    .map(::mavenToFabric)
+                    .get(),
+            )
+            depends(
+                "fabric-language-kotlin",
+                fabricLibs.fabric.kotlin.versionRange
+                    .map(::mavenToFabric)
+                    .get(),
+            )
         }
-        licenses.add(prop("mod_license"))
-        entrypoint("main") {
-            adapter = "kotlin"
-            value = "com.npg418.markerlib.FabricMain"
-        }
-        entrypoint("fabric-datagen") {
-            adapter = "kotlin"
-            value = "com.npg418.markerlib.datagen.MarkerLibDataGenerator"
-        }
-        modId.get().let {
-            mixin("$it.mixins.json")
-            mixin("$it.fabric.mixins.json")
-        }
-        depends("fabricloader", fabricLibs.fabric.loader.versionRange.map(::mavenToFabric).get())
-        depends("minecraft", libs.minecraft.versionRange.map(::mavenToFabric).get())
-        depends("java", java.toolchain.languageVersion.map { ">=$it" }.get())
-        depends("fabric-api", fabricLibs.fabric.api.versionRange.map(::mavenToFabric).get())
-        depends("fabric-language-kotlin", fabricLibs.fabric.kotlin.versionRange.map(::mavenToFabric).get())
     }
-}
 registerMetadataTask(generateModJson)
 
 repositories {
@@ -102,10 +128,14 @@ dependencies {
         version { require(preferredVersion) }
     }
     @Suppress("UnstableApiUsage")
-    mappings(loom.layered {
-        officialMojangMappings()
-        parchment("org.parchmentmc.data:parchment-${libs.versions.parchment.minecraft.get()}:${libs.versions.parchment.mapping.get()}@zip")
-    })
+    mappings(
+        loom.layered {
+            officialMojangMappings()
+            parchment(
+                "org.parchmentmc.data:parchment-${libs.versions.parchment.minecraft.get()}:${libs.versions.parchment.mapping.get()}@zip",
+            )
+        },
+    )
     modImplementation(fabricLibs.fabric.loader)
     modImplementation(fabricLibs.fabric.api)
     modImplementation(fabricLibs.fabric.kotlin)

@@ -12,7 +12,5 @@ class ModModelProvider(output: FabricDataOutput) : FabricModelProvider(output) {
     override fun generateItemModels(itemModelGenerator: ItemModelGenerators) {
     }
 
-    override fun getName(): String {
-        return "ModModelProvider"
-    }
+    override fun getName(): String = "ModModelProvider"
 }

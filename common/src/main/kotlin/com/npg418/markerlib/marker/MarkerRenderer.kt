@@ -32,9 +32,10 @@ object MarkerRenderer {
             val pos = m.target.resolve(level, partialTick) ?: continue
             val dist = cam.distanceTo(pos)
 
-            val v = Vector4f((pos.x - cam.x).toFloat(), (pos.y - cam.y).toFloat(), (pos.z - cam.z).toFloat(), 1f).mul(
-                viewProj
-            )
+            val v =
+                Vector4f((pos.x - cam.x).toFloat(), (pos.y - cam.y).toFloat(), (pos.z - cam.z).toFloat(), 1f).mul(
+                    viewProj,
+                )
 
             val behind = v.w <= 0f
             var nx = v.x / v.w
@@ -58,7 +59,7 @@ object MarkerRenderer {
         g.pose().pushPose()
         g.pose().translate(x, y, 0f)
         tint(g, m.color) {
-            g.blit(m.icon, -s / 2, -s / 2, s, s, 0f, 0f, 1,1,1,1)
+            g.blit(m.icon, -s / 2, -s / 2, s, s, 0f, 0f, 1, 1, 1, 1)
         }
         g.drawCenteredString(font, "${dist.roundToInt()}m", 0, 10, m.color)
         g.pose().popPose()
@@ -75,7 +76,7 @@ object MarkerRenderer {
         g.pose().translate(cx + dx * k, cy + dy * k, 0f)
         g.pose().mulPose(Axis.ZP.rotation(atan2(dy, dx)))
         tint(g, m.color) {
-            g.blit(m.arrowIcon, -s / 2, -s / 2, s, s, 0f, 0f, 1,1,1,1)
+            g.blit(m.arrowIcon, -s / 2, -s / 2, s, s, 0f, 0f, 1, 1, 1, 1)
         }
         g.pose().popPose()
     }
