@@ -4,9 +4,7 @@ import com.npg418.markerlib.datagen.ModItemModelProvider
 import com.npg418.markerlib.datagen.ModLanguageProvider
 import com.npg418.markerlib.marker.client.ClientMarkers
 import com.npg418.markerlib.marker.client.MarkerRenderer
-import com.npg418.markerlib.marker.common.Marker
 import net.minecraft.server.level.ServerPlayer
-import net.minecraft.world.phys.Vec3
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent
 import net.minecraftforge.client.event.RegisterGuiOverlaysEvent
@@ -42,8 +40,7 @@ object ClientModEvents {
     @SubscribeEvent
     fun onRegisterOverlays(e: RegisterGuiOverlaysEvent) {
         e.registerBelowAll("markers") { _, g, partialTick, _, _ ->
-            val testMarker = Marker("test", Marker.Target.Fixed(Vec3(0.5, 80.0, 0.5)))
-            MarkerRenderer.render(g, listOf(testMarker), partialTick)
+            MarkerRenderer.render(g, ClientMarkers.all, partialTick)
         }
     }
 }

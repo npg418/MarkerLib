@@ -2,7 +2,6 @@ package com.npg418.markerlib.marker.common
 
 import com.npg418.markerlib.marker.common.network.readVec3
 import com.npg418.markerlib.marker.common.network.writeVec3
-import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.ListTag
@@ -10,7 +9,6 @@ import net.minecraft.nbt.NbtUtils
 import net.minecraft.nbt.Tag
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.resources.ResourceLocation
-import net.minecraft.world.level.Level
 import net.minecraft.world.phys.Vec3
 import java.util.*
 
@@ -90,14 +88,10 @@ data class Marker(
             }
         }
 
-        fun resolve(level: Level, partialTick: Float): Vec3?
-
         fun write(buf: FriendlyByteBuf)
         fun toTag(): CompoundTag
 
         data class Fixed(val pos: Vec3) : Target {
-            override fun resolve(level: Level, partialTick: Float) = pos
-
             override fun write(buf: FriendlyByteBuf) {
                 buf.writeByte(0)
                 buf.writeVec3(pos)
@@ -112,11 +106,6 @@ data class Marker(
         }
 
         data class Entity(val uuid: UUID, val yOffset: Double = 0.5) : Target {
-            override fun resolve(level: Level, partialTick: Float): Vec3? {
-                val e = (level as? ClientLevel)?.entitiesForRendering()?.firstOrNull { it.uuid == uuid } ?: return null
-                return e.getPosition(partialTick).add(0.0, e.bbHeight + yOffset, 0.0)
-            }
-
             override fun write(buf: FriendlyByteBuf) {
                 buf.writeByte(1)
                 buf.writeUUID(uuid)
@@ -131,8 +120,6 @@ data class Marker(
         }
 
         data class Block(val pos: BlockPos) : Target {
-            override fun resolve(level: Level, partialTick: Float): Vec3 = Vec3.atCenterOf(pos)
-
             override fun write(buf: FriendlyByteBuf) {
                 buf.writeByte(2)
                 buf.writeBlockPos(pos)

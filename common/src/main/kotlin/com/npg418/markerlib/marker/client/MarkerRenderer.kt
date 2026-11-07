@@ -29,8 +29,9 @@ object MarkerRenderer {
         val w = g.guiWidth().toFloat()
         val h = g.guiHeight().toFloat()
 
+        val ctx = ResolveContext(level, markers)
         for (m in markers) {
-            val pos = m.target.resolve(level, partialTick) ?: continue
+            val pos = m.target.resolve(ctx, partialTick) ?: continue
             val dist = cam.distanceTo(pos)
 
             val v =
