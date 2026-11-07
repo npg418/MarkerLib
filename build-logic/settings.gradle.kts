@@ -7,3 +7,5 @@ typesafeConventions {
         ignorePackageNames = true
     }
 }
+
+rootProject.name = "build-logic"

@@ -4,16 +4,17 @@ import libs
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    alias(libs.plugins.kotlin.jvm)
+    kotlin("jvm")
     idea
 }
 
 group = prop("mod_group_id").get()
 version = prop("mod_version").get()
 
-val projectName = project.name
-
-base.archivesName = prop("mod_id").map { "$it-$projectName" }
+base.archivesName = run {
+    val projectName = project.name
+    prop("mod_id").map { "$it-$projectName" }
+}
 
 java {
     toolchain {
@@ -63,13 +64,28 @@ if (project.path != ":common") {
     extensions.add<SourceSet>("commonSrc", commonSrc)
 }
 
+tasks.withType<KotlinCompile>().configureEach {
+    compilerOptions.moduleName.set("${project.name}_$name")
+}
+
+dependencies {
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(libs.junit.platform.launcher)
+}
+
+tasks.test {
+    useJUnitPlatform()
+}
+
+sourceSets.test {
+    compileClasspath += sourceSets.main.get().compileClasspath
+    runtimeClasspath += sourceSets.main.get().compileClasspath
+}
+
 idea {
     module {
         isDownloadJavadoc = true
         isDownloadSources = true
     }
-}
-
-tasks.withType<KotlinCompile>().configureEach {
-    compilerOptions.moduleName.set("${projectName}_$name")
 }
