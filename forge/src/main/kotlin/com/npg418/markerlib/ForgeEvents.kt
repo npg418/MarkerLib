@@ -4,12 +4,14 @@ import com.npg418.markerlib.datagen.ModItemModelProvider
 import com.npg418.markerlib.datagen.ModLanguageProvider
 import com.npg418.markerlib.marker.client.ClientMarkers
 import com.npg418.markerlib.marker.client.MarkerRenderer
+import com.npg418.markerlib.marker.server.MarkerCommand
 import net.minecraft.server.level.ServerPlayer
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent
 import net.minecraftforge.client.event.RegisterGuiOverlaysEvent
 import net.minecraftforge.client.event.RenderLevelStageEvent
 import net.minecraftforge.data.event.GatherDataEvent
+import net.minecraftforge.event.RegisterCommandsEvent
 import net.minecraftforge.event.entity.player.PlayerEvent
 import net.minecraftforge.eventbus.api.SubscribeEvent
 import net.minecraftforge.fml.common.Mod
@@ -32,6 +34,11 @@ object CommonForgeEvents {
     @SubscribeEvent
     fun onLogin(e: PlayerEvent.PlayerLoggedInEvent) {
         (e.entity as? ServerPlayer)?.let(MarkerLibForge.service::syncTo)
+    }
+
+    @SubscribeEvent
+    fun onRegisterCommands(e: RegisterCommandsEvent) {
+        MarkerCommand.register(e.dispatcher, MarkerLibForge.service)
     }
 }
 

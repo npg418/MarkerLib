@@ -26,4 +26,9 @@ class MarkerService(private val sender: PacketSender) {
         server.playerList.players.forEach { sender.send(it, RemovePacket(id)) }
         return true
     }
+
+    fun clear(server: MinecraftServer) {
+        ServerMarkers.get(server).clear()
+        server.playerList.players.forEach { sender.send(it, SyncPacket(emptyList())) }
+    }
 }
