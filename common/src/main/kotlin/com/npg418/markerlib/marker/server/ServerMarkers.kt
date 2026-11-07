@@ -1,5 +1,7 @@
-package com.npg418.markerlib.marker
+package com.npg418.markerlib.marker.server
 
+import com.npg418.markerlib.marker.common.Marker
+import com.npg418.markerlib.marker.common.MarkerStore
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.ListTag
 import net.minecraft.nbt.Tag
