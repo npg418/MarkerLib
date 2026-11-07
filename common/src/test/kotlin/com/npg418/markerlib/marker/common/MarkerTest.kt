@@ -1,4 +1,4 @@
-package com.npg418.markerlib.marker
+package com.npg418.markerlib.marker.common
 
 import io.netty.buffer.Unpooled
 import net.minecraft.core.BlockPos
@@ -54,7 +54,7 @@ class MarkerTest {
     @Test
     fun storeRemove() {
         val store = MarkerStore().apply { put(SAMPLE) }
-        assertTrue(store.remove("test"))
-        assertFalse(store.remove("test"))
+        assertNotNull(store.remove("test"))
+        assertNull(store.remove("test"))
     }
 }

@@ -1,7 +1,7 @@
-package com.npg418.markerlib.marker
+package com.npg418.markerlib.marker.common
 
-import com.npg418.markerlib.network.readVec3
-import com.npg418.markerlib.network.writeVec3
+import com.npg418.markerlib.marker.common.network.readVec3
+import com.npg418.markerlib.marker.common.network.writeVec3
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag

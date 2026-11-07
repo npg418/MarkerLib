@@ -1,7 +1,7 @@
 package com.npg418.markerlib
 
-import com.npg418.markerlib.marker.Marker
-import com.npg418.markerlib.marker.MarkerRenderer
+import com.npg418.markerlib.marker.client.MarkerRenderer
+import com.npg418.markerlib.marker.common.Marker
 import net.minecraft.world.phys.Vec3
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.client.event.RegisterGuiOverlaysEvent

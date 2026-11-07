@@ -8,16 +8,16 @@ import net.minecraft.nbt.Tag
 import net.minecraft.server.MinecraftServer
 import net.minecraft.world.level.saveddata.SavedData
 
-class MarkerSavedData : SavedData() {
+class ServerMarkers : SavedData() {
     companion object {
         private const val NAME = "markerlib_markers"
 
-        fun load(tag: CompoundTag) = MarkerSavedData().also { d ->
+        fun load(tag: CompoundTag) = ServerMarkers().also { d ->
             tag.getList("markers", Tag.TAG_COMPOUND.toInt()).forEach { d.store.put(Marker.fromTag(it as CompoundTag)) }
         }
 
-        fun get(server: MinecraftServer): MarkerSavedData =
-            server.overworld().dataStorage.computeIfAbsent(::load, ::MarkerSavedData, NAME)
+        fun get(server: MinecraftServer): ServerMarkers =
+            server.overworld().dataStorage.computeIfAbsent(::load, ::ServerMarkers, NAME)
     }
 
     val store = MarkerStore()
@@ -29,7 +29,7 @@ class MarkerSavedData : SavedData() {
         store.put(m)
         setDirty()
     }
-    fun remove(id: String): Boolean = store.remove(id).also { if (it) setDirty() }
+    fun remove(id: String) = store.remove(id).also { if (it != null) setDirty() }
     fun clear() {
         store.clear()
         setDirty()

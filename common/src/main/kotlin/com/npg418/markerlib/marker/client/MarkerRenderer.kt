@@ -1,7 +1,8 @@
-package com.npg418.markerlib.marker
+package com.npg418.markerlib.marker.client
 
 import com.mojang.math.Axis
 import com.npg418.markerlib.config.CommonConfig
+import com.npg418.markerlib.marker.common.Marker
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
 import org.joml.Matrix4f

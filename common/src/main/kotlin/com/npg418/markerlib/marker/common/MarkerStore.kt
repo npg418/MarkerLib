@@ -1,9 +1,9 @@
-package com.npg418.markerlib.marker
+package com.npg418.markerlib.marker.common
 
-class MarkerStore {
+open class MarkerStore {
     private val markers = LinkedHashMap<String, Marker>()
 
-    val all: Collection<Marker> get() = markers.values
+    val all get() = markers.values
 
     operator fun get(id: String) = markers[id]
 
@@ -11,7 +11,7 @@ class MarkerStore {
         markers[marker.id] = marker
     }
 
-    fun remove(id: String) = markers.remove(id) != null
+    fun remove(id: String) = markers.remove(id)
 
     fun clear() = markers.clear()
 
