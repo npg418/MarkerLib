@@ -2,7 +2,6 @@ package com.npg418.markerlib.marker.common
 
 import com.npg418.markerlib.marker.common.network.readVec3
 import com.npg418.markerlib.marker.common.network.writeVec3
-import net.minecraft.core.BlockPos
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.ListTag
 import net.minecraft.nbt.NbtUtils
@@ -74,16 +73,29 @@ data class Marker(
     sealed interface Target {
         companion object {
             fun read(buf: FriendlyByteBuf): Target = when (buf.readByte().toInt()) {
-                0 -> Fixed(buf.readVec3())
-                1 -> Entity(buf.readUUID(), buf.readDouble())
-                2 -> Block(buf.readBlockPos())
+                0 -> Fixed(positions = buf.readList { it.readVec3() })
+                1 -> Entity(
+                    uuids = buf.readCollection({ HashSet<UUID>(it) }) { b -> b.readUUID() },
+                    yOffset = buf.readDouble()
+                )
+
                 else -> error("unknown target type")
             }
 
             fun fromTag(t: CompoundTag): Target = when (t.getString("type")) {
-                "fixed" -> Fixed(Vec3(t.getDouble("x"), t.getDouble("y"), t.getDouble("z")))
-                "entity" -> Entity(t.getUUID("uuid"), t.getDouble("yOffset"))
-                "block" -> Block(NbtUtils.readBlockPos(t.getCompound("pos")))
+                "fixed" -> Fixed(
+                    positions = t.getList("positions", Tag.TAG_COMPOUND.toInt()).map {
+                        it as CompoundTag
+                        Vec3(it.getDouble("x"), it.getDouble("y"), it.getDouble("z"))
+                    },
+                )
+
+                "entity" -> Entity(
+                    uuids = t.getList("uuids", Tag.TAG_INT_ARRAY.toInt()).map { NbtUtils.loadUUID(it) }.toSet(),
+                    selector = t.getString("selector"),
+                    yOffset = t.getDouble("yOffset")
+                )
+
                 else -> error("unknown target type")
             }
         }
@@ -91,43 +103,39 @@ data class Marker(
         fun write(buf: FriendlyByteBuf)
         fun toTag(): CompoundTag
 
-        data class Fixed(val pos: Vec3) : Target {
+        data class Fixed(val positions: List<Vec3>) : Target {
             override fun write(buf: FriendlyByteBuf) {
                 buf.writeByte(0)
-                buf.writeVec3(pos)
+                buf.writeCollection(positions) { b, v -> b.writeVec3(v) }
             }
 
             override fun toTag() = CompoundTag().apply {
                 putString("type", "fixed")
-                putDouble("x", pos.x)
-                putDouble("y", pos.y)
-                putDouble("z", pos.z)
+                put("positions", ListTag().apply {
+                    positions.forEach {
+                        add(CompoundTag().apply {
+                            putDouble("x", it.x)
+                            putDouble("y", it.y)
+                            putDouble("z", it.z)
+                        })
+                    }
+                })
             }
         }
 
-        data class Entity(val uuid: UUID, val yOffset: Double = 0.5) : Target {
+        data class Entity(val uuids: Set<UUID>, val selector: String = "", val yOffset: Double = 0.5) :
+            Target {
             override fun write(buf: FriendlyByteBuf) {
                 buf.writeByte(1)
-                buf.writeUUID(uuid)
+                buf.writeCollection(uuids) { b, v -> b.writeUUID(v) }
                 buf.writeDouble(yOffset)
             }
 
             override fun toTag() = CompoundTag().apply {
                 putString("type", "entity")
-                putUUID("uuid", uuid)
+                putString("selector", selector)
+                put("uuids", ListTag().apply { uuids.forEach { add(NbtUtils.createUUID(it)) } })
                 putDouble("yOffset", yOffset)
-            }
-        }
-
-        data class Block(val pos: BlockPos) : Target {
-            override fun write(buf: FriendlyByteBuf) {
-                buf.writeByte(2)
-                buf.writeBlockPos(pos)
-            }
-
-            override fun toTag() = CompoundTag().apply {
-                putString("type", "block")
-                put("pos", NbtUtils.writeBlockPos(pos))
             }
         }
     }

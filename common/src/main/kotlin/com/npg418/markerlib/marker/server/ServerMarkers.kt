@@ -1,7 +1,6 @@
 package com.npg418.markerlib.marker.server
 
 import com.npg418.markerlib.marker.common.Marker
-import com.npg418.markerlib.marker.common.MarkerStore
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.ListTag
 import net.minecraft.nbt.Tag
@@ -13,30 +12,34 @@ class ServerMarkers : SavedData() {
         private const val NAME = "markerlib_markers"
 
         fun load(tag: CompoundTag) = ServerMarkers().also { d ->
-            tag.getList("markers", Tag.TAG_COMPOUND.toInt()).forEach { d.store.put(Marker.fromTag(it as CompoundTag)) }
+            tag.getList("markers", Tag.TAG_COMPOUND.toInt()).forEach {
+                val m = Marker.fromTag(it as CompoundTag)
+                d.markers[m.id] = m
+            }
         }
 
         fun get(server: MinecraftServer): ServerMarkers =
             server.overworld().dataStorage.computeIfAbsent(::load, ::ServerMarkers, NAME)
     }
 
-    val store = MarkerStore()
+    val markers = LinkedHashMap<String, Marker>()
 
-    val all: Collection<Marker> get() = store.all
-    operator fun get(id: String) = store[id]
+    val all: Collection<Marker> get() = markers.values
+    operator fun get(id: String) = markers[id]
 
     fun put(m: Marker) {
-        store.put(m)
+        markers[m.id] = m
         setDirty()
     }
-    fun remove(id: String) = store.remove(id).also { if (it != null) setDirty() }
+    fun remove(id: String) = markers.remove(id).also { if (it != null) setDirty() }
+
     fun clear() {
-        store.clear()
+        markers.clear()
         setDirty()
     }
 
     override fun save(tag: CompoundTag): CompoundTag {
-        tag.put("markers", ListTag().apply { store.all.forEach { add(it.toTag()) } })
+        tag.put("markers", ListTag().apply { all.forEach { add(it.toTag()) } })
         return tag
     }
 }
