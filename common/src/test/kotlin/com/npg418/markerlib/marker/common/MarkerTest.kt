@@ -1,7 +1,6 @@
 package com.npg418.markerlib.marker.common
 
 import io.netty.buffer.Unpooled
-import net.minecraft.core.BlockPos
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.world.phys.Vec3
 import org.junit.jupiter.api.Assertions.*
@@ -12,7 +11,7 @@ class MarkerTest {
     companion object {
         private val SAMPLE = Marker(
             id = "test",
-            target = Marker.Target.Fixed(Vec3(1.5, 64.0, -3.25)),
+            target = Marker.Target.Fixed(listOf(Vec3(1.5, 64.0, -3.25))),
             color = 0xFF00FF00.toInt(),
             label = "base",
             size = 1.5f,
@@ -28,9 +27,8 @@ class MarkerTest {
     @Test
     fun nbtRoundTripAllTargets() {
         val targets = listOf(
-            Marker.Target.Fixed(Vec3(0.0, 1.0, 2.0)),
-            Marker.Target.Entity(UUID.randomUUID(), 0.5),
-            Marker.Target.Block(BlockPos(1, 2, 3)),
+            Marker.Target.Fixed(listOf(Vec3(0.0, 1.0, 2.0))),
+            Marker.Target.Entity(setOf(UUID.randomUUID())),
         )
         targets.forEach { assertEquals(it, Marker.Target.fromTag(it.toTag())) }
     }
