@@ -2,27 +2,15 @@
 
 package com.npg418.markerlib.config.api
 
-abstract class ConfigSpec(
-    val configType: ConfigType,
-) {
-    protected fun <T : Any> defining(default: T) = NormalConfigProperty(default)
+abstract class ConfigSpec(val configType: ConfigType) {
+    protected inline fun <reified T : Any> entry(default: T) = NormalConfigProperty(default, T::class)
 
-    protected fun <T : Enum<T>> definingEnum(default: T) = EnumConfigProperty(default)
+    protected inline fun <reified T : Enum<T>> entry(default: T) = EnumConfigProperty(default, T::class)
 
-    protected fun <E : Any> definingList(
+    protected inline fun <reified E : Any> entry(
         default: List<E>,
-        newElement: () -> E,
-        elementValidator: (Any?) -> Boolean,
-        allowEmpty: Boolean = default.isEmpty(),
-    ) = ListConfigProperty(default, newElement, elementValidator, allowEmpty)
-
-    protected fun <T : Comparable<T>> definingInRange(
-        default: T,
-        range: ClosedRange<T>,
-    ) = RangedConfigProperty(default, range)
-
-    protected fun <T : Any> definingInList(
-        default: T,
-        allowedValues: List<T>,
-    ) = OneOfConfigProperty(default, allowedValues)
+        noinline newElement: () -> E,
+        noinline elementValidator: (E) -> Boolean = { true },
+        allowEmpty: Boolean = default.isEmpty()
+    ) = ListConfigProperty(default, E::class, newElement, elementValidator, allowEmpty)
 }

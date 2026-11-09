@@ -9,10 +9,9 @@ import kotlin.reflect.KAnnotatedElement
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.safeCast
 
-class ForgeConfigBuilder(
-    private val spec: ConfigSpec,
-) : ConfigTreeWalker(LOGGER) {
+class ForgeConfigBuilder(private val spec: ConfigSpec) : ConfigTreeWalker(LOGGER), ConfigPropertyVisitor<Unit> {
     companion object {
         private val LOGGER = LogUtils.getLogger()
     }
@@ -20,27 +19,22 @@ class ForgeConfigBuilder(
     private val builder = ForgeConfigSpec.Builder()
 
     fun register(context: ModLoadingContext) {
-        walkRoot(spec::class).fold(
-            onSuccess = {
-                context.registerConfig(ModConfig.Type.valueOf(spec.configType.name), builder.build())
-            },
-            onFailure = {
-                LOGGER.error("An error occurred while registering {}.", spec::class.simpleName, it)
-            },
-        )
+        walkRoot(spec::class).fold(onSuccess = {
+            context.registerConfig(ModConfig.Type.valueOf(spec.configType.name), builder.build())
+        }, onFailure = {
+            LOGGER.error("An error occurred while registering {}.", spec::class.simpleName, it)
+        })
     }
 
-    private fun applyCommonMeta(annotated: KAnnotatedElement) {
+    private fun applyMeta(annotated: KAnnotatedElement) {
         annotated.findAnnotation<Comment>()?.let { builder.comment(it.value) }
         annotated.findAnnotation<Translation>()?.let { builder.translation(it.value) }
     }
 
     override fun onSection(
-        name: String,
-        sectionClass: KClass<*>,
-        visitChildren: () -> Unit,
+        name: String, sectionClass: KClass<*>, visitChildren: () -> Unit
     ) {
-        applyCommonMeta(sectionClass)
+        applyMeta(sectionClass)
         builder.push(name)
         try {
             visitChildren()
@@ -49,76 +43,41 @@ class ForgeConfigBuilder(
         }
     }
 
-    override fun onProperty(
-        name: String,
-        property: KProperty1<out Any, *>,
-        delegate: ConfigProperty<*>,
-    ) {
-        applyCommonMeta(property)
+    override fun onProperty(name: String, property: KProperty1<out Any, *>, delegate: ConfigProperty<*>) {
+        applyMeta(property)
         property.findAnnotation<WorldRestart>()?.let { builder.worldRestart() }
-//        property.findAnnotation<GameRestart>()?.let { builder.gameRestart() }
-
-        when (delegate) {
-            is NormalConfigProperty<*> -> bind(name, delegate)
-            is EnumConfigProperty<*> -> bind(name, delegate)
-            is ListConfigProperty<*> -> bind(name, delegate)
-            is RangedConfigProperty<*> -> bind(name, delegate)
-            is OneOfConfigProperty<*> -> bind(name, delegate)
-        }
+        delegate.accept(name, this)
     }
 
     private fun <T : Any> ForgeConfigSpec.ConfigValue<T>.bind(d: ConfigProperty<T>) {
         d.getter = this::get
-        d.setter = this::set
+        d.setter = {
+            if (d.isValid(it)) set(it)
+            else ConfigProperty.LOGGER.error("Validation for config value {} failed. The value was not set.", it)
+        }
     }
 
-    private fun <T : Any> bind(
-        name: String,
-        d: NormalConfigProperty<T>,
-    ) {
-        val configValue =
-            d.validator?.let {
-                builder.define(name, d.default, it)
-            } ?: builder.define(name, d.default)
-        configValue.bind(d)
-    }
+    private fun <T : Any> validator(type: KClass<T>, d: ConfigProperty<T>): (Any?) -> Boolean =
+        { type.safeCast(it)?.let(d::isValid) ?: false }
 
-    private fun <T : Enum<T>> bind(
-        name: String,
-        d: EnumConfigProperty<T>,
-    ) {
-        val configValue =
-            d.validator?.let {
-                builder.defineEnum(name, d.default, it)
-            } ?: builder.defineEnum(name, d.default)
-        configValue.bind(d)
-    }
+    override fun <T : Any> visit(name: String, p: NormalConfigProperty<T>) =
+        builder.define(name, p.default, validator(p.type, p)).bind(p)
 
-    private fun <E : Any> bind(
-        name: String,
-        d: ListConfigProperty<E>,
-    ) {
-        if (d.allowEmpty) {
-            builder.defineListAllowEmpty(name, d.default, /* d.newElement, */ d.elementValidator)
+    override fun <E : Enum<E>> visit(name: String, p: EnumConfigProperty<E>) =
+        builder.defineEnum(name, p.default).bind(p)
+
+    override fun <T : Comparable<T>> visit(name: String, p: RangedConfigProperty<T>) =
+        builder.defineInRange(name, p.default, p.range.start, p.range.endInclusive, p.type.javaObjectType).bind(p)
+
+    override fun <T : Any> visit(name: String, p: OneOfConfigProperty<T>) =
+        builder.defineInList(name, p.default, p.allowedValues).bind(p)
+
+    override fun <E : Any> visit(name: String, p: ListConfigProperty<E>) {
+        val v: (Any?) -> Boolean = { p.elementType.safeCast(it)?.let(p.elementValidator) ?: false }
+        if (p.allowEmpty) {
+            builder.defineListAllowEmpty(name, p.default, v)
         } else {
-            builder.defineList(name, d.default, /* d.newElement, */ d.elementValidator)
-        }.bind(d)
-    }
-
-    private fun <T : Comparable<T>> bind(
-        name: String,
-        d: RangedConfigProperty<T>,
-    ) {
-        @Suppress("UNCHECKED_CAST")
-        builder
-            .defineInRange(name, d.default, d.range.start, d.range.endInclusive, d.default::class.java as Class<T>)
-            .bind(d)
-    }
-
-    private fun <T : Any> bind(
-        name: String,
-        d: OneOfConfigProperty<T>,
-    ) {
-        builder.defineInList(name, d.default, d.allowedValues).bind(d)
+            builder.defineList(name, p.default, v)
+        }.bind(p)
     }
 }
