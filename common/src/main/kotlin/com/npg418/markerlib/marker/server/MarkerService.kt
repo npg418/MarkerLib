@@ -1,9 +1,9 @@
 package com.npg418.markerlib.marker.server
 
 import com.mojang.brigadier.StringReader
+import com.npg418.markerlib.Platform
 import com.npg418.markerlib.marker.common.Marker
 import com.npg418.markerlib.marker.common.network.AddPacket
-import com.npg418.markerlib.marker.common.network.PacketSender
 import com.npg418.markerlib.marker.common.network.RemovePacket
 import com.npg418.markerlib.marker.common.network.SyncPacket
 import net.minecraft.commands.arguments.EntityArgument
@@ -12,16 +12,16 @@ import net.minecraft.server.MinecraftServer
 import net.minecraft.server.level.ServerPlayer
 import java.util.*
 
-class MarkerService(private val sender: PacketSender) {
-    companion object {
-        private const val INTERVAL = 20
-        private const val MIN_GAP = 5
-    }
+object MarkerService {
+    private const val INTERVAL = 20
+    private const val MIN_GAP = 5
 
     private var dirty = false
     private var lastRefresh = 0
 
-    fun markDirty() { dirty = true }
+    fun markDirty() {
+        dirty = true
+    }
 
     fun tick(server: MinecraftServer) {
         val now = server.tickCount
@@ -50,24 +50,24 @@ class MarkerService(private val sender: PacketSender) {
 
     fun syncTo(player: ServerPlayer) {
         val visible = ServerMarkers.get(player.server).all.filter { it.isVisibleTo(player.uuid) }
-        sender.send(player, SyncPacket(visible))
+        Platform.sendPacket(player, SyncPacket(visible))
     }
 
     fun add(server: MinecraftServer, marker: Marker) {
         ServerMarkers.get(server).put(marker)
         server.playerList.players.forEach {
-            sender.send(it, if (marker.isVisibleTo(it.uuid)) AddPacket(marker) else RemovePacket(marker.id))
+            Platform.sendPacket(it, if (marker.isVisibleTo(it.uuid)) AddPacket(marker) else RemovePacket(marker.id))
         }
     }
 
     fun remove(server: MinecraftServer, id: String): Boolean {
         if (ServerMarkers.get(server).remove(id) == null) return false
-        server.playerList.players.forEach { sender.send(it, RemovePacket(id)) }
+        server.playerList.players.forEach { Platform.sendPacket(it, RemovePacket(id)) }
         return true
     }
 
     fun clear(server: MinecraftServer) {
         ServerMarkers.get(server).clear()
-        server.playerList.players.forEach { sender.send(it, SyncPacket(emptyList())) }
+        server.playerList.players.forEach { Platform.sendPacket(it, SyncPacket(emptyList())) }
     }
 }

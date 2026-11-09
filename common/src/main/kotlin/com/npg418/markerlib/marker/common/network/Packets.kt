@@ -2,7 +2,6 @@ package com.npg418.markerlib.marker.common.network
 
 import com.npg418.markerlib.marker.common.Marker
 import net.minecraft.network.FriendlyByteBuf
-import net.minecraft.server.level.ServerPlayer
 
 sealed interface MarkerPacket
 
@@ -30,8 +29,4 @@ data class RemovePacket(val id: String) : MarkerPacket {
     fun encode(buf: FriendlyByteBuf) {
         buf.writeUtf(id)
     }
-}
-
-fun interface PacketSender {
-    fun send(player: ServerPlayer, packet: MarkerPacket)
 }
