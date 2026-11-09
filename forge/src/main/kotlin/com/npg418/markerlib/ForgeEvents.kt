@@ -12,7 +12,12 @@ import net.minecraftforge.client.event.RegisterGuiOverlaysEvent
 import net.minecraftforge.client.event.RenderLevelStageEvent
 import net.minecraftforge.data.event.GatherDataEvent
 import net.minecraftforge.event.RegisterCommandsEvent
+import net.minecraftforge.event.TickEvent
+import net.minecraftforge.event.entity.EntityJoinLevelEvent
+import net.minecraftforge.event.entity.EntityLeaveLevelEvent
+import net.minecraftforge.event.entity.living.LivingDeathEvent
 import net.minecraftforge.event.entity.player.PlayerEvent
+import net.minecraftforge.event.server.ServerStartedEvent
 import net.minecraftforge.eventbus.api.SubscribeEvent
 import net.minecraftforge.fml.common.Mod
 
@@ -31,6 +36,31 @@ object CommonModEvents {
 
 @Mod.EventBusSubscriber(modid = MarkerLib.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 object CommonForgeEvents {
+    @SubscribeEvent
+    fun onServerTick(e: TickEvent.ServerTickEvent) {
+        if (e.phase == TickEvent.Phase.END) MarkerLibForge.service.tick(e.server)
+    }
+
+    @SubscribeEvent
+    fun onServerStarted(@Suppress("UNUSED_PARAMETER") e: ServerStartedEvent) {
+        MarkerLibForge.service.markDirty()
+    }
+
+    @SubscribeEvent
+    fun onEntityJoin(e: EntityJoinLevelEvent) {
+        if (!e.level.isClientSide) MarkerLibForge.service.markDirty()
+    }
+
+    @SubscribeEvent
+    fun onEntityLeave(e: EntityLeaveLevelEvent) {
+        if (!e.level.isClientSide) MarkerLibForge.service.markDirty()
+    }
+
+    @SubscribeEvent
+    fun onLivingDeath(e: LivingDeathEvent) {
+        if (!e.entity.level().isClientSide) MarkerLibForge.service.markDirty()
+    }
+
     @SubscribeEvent
     fun onLogin(e: PlayerEvent.PlayerLoggedInEvent) {
         (e.entity as? ServerPlayer)?.let(MarkerLibForge.service::syncTo)
@@ -62,8 +92,7 @@ object ClientForgeEvents {
     }
 
     @SubscribeEvent
-    @Suppress("unused")
-    fun onLoggingOut(e: ClientPlayerNetworkEvent.LoggingOut) {
+    fun onLoggingOut(@Suppress("UNUSED_PARAMETER") e: ClientPlayerNetworkEvent.LoggingOut) {
         ClientMarkers.clear()
     }
 }

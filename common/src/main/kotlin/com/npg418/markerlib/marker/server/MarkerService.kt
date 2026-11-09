@@ -13,12 +13,31 @@ import net.minecraft.server.level.ServerPlayer
 import java.util.*
 
 class MarkerService(private val sender: PacketSender) {
+    companion object {
+        private const val INTERVAL = 20
+        private const val MIN_GAP = 5
+    }
+
+    private var dirty = false
+    private var lastRefresh = 0
+
+    fun markDirty() { dirty = true }
+
+    fun tick(server: MinecraftServer) {
+        val now = server.tickCount
+        val periodic = now % INTERVAL == 0
+        val onDemand = dirty && now - lastRefresh >= MIN_GAP
+        if (!periodic && !onDemand) return
+        dirty = false
+        lastRefresh = now
+        ServerMarkers.get(server).all.toList().forEach { refresh(server, it) }
+    }
+
     private val parsed = HashMap<String, EntitySelector>()
 
     fun evaluate(server: MinecraftServer, selector: String): Set<UUID>? = runCatching {
         parsed.getOrPut(selector) { EntityArgument.entities().parse(StringReader(selector)) }
-            .findEntities(server.createCommandSourceStack())
-            .map { it.uuid }.toSet()
+            .findEntities(server.createCommandSourceStack()).map { it.uuid }.toSet()
     }.getOrNull()
 
     fun refresh(server: MinecraftServer, marker: Marker) {
