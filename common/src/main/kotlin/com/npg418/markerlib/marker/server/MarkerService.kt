@@ -2,6 +2,7 @@ package com.npg418.markerlib.marker.server
 
 import com.mojang.brigadier.StringReader
 import com.npg418.markerlib.Platform
+import com.npg418.markerlib.config.ServerConfig
 import com.npg418.markerlib.marker.common.Marker
 import com.npg418.markerlib.marker.common.network.AddPacket
 import com.npg418.markerlib.marker.common.network.RemovePacket
@@ -13,9 +14,6 @@ import net.minecraft.server.level.ServerPlayer
 import java.util.*
 
 object MarkerService {
-    private const val INTERVAL = 20
-    private const val MIN_GAP = 5
-
     private var dirty = false
     private var lastRefresh = 0
 
@@ -25,8 +23,8 @@ object MarkerService {
 
     fun tick(server: MinecraftServer) {
         val now = server.tickCount
-        val periodic = now % INTERVAL == 0
-        val onDemand = dirty && now - lastRefresh >= MIN_GAP
+        val periodic = now % ServerConfig.Selector.interval == 0
+        val onDemand = dirty && now - lastRefresh >= ServerConfig.Selector.minGap
         if (!periodic && !onDemand) return
         dirty = false
         lastRefresh = now
