@@ -2,7 +2,7 @@ package com.npg418.markerlib.marker.client
 
 import com.npg418.markerlib.marker.common.Marker
 
-object ClientMarkers  {
+object ClientMarkers {
     private val markers = LinkedHashMap<String, Marker>()
 
     val all get() = markers.values

@@ -31,6 +31,7 @@ class ServerMarkers : SavedData() {
         markers[m.id] = m
         setDirty()
     }
+
     fun remove(id: String) = markers.remove(id).also { if (it != null) setDirty() }
 
     fun clear() {

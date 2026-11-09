@@ -1,10 +1,6 @@
 package com.npg418.markerlib.config
 
-import com.npg418.markerlib.config.api.Comment
-import com.npg418.markerlib.config.api.ConfigSpec
-import com.npg418.markerlib.config.api.ConfigType
-import com.npg418.markerlib.config.api.Name
-import com.npg418.markerlib.config.api.ranged
+import com.npg418.markerlib.config.api.*
 
 object CommonConfig : ConfigSpec(ConfigType.COMMON) {
     @Name("rendering")

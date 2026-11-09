@@ -39,27 +39,27 @@ object MarkerCommand {
     fun register(dispatcher: CommandDispatcher<CommandSourceStack>, service: MarkerService) {
         dispatcher.register(
             literal("marker").requires { it.hasPermission(2) }.then(addNode(service)).then(setNode(service)).then(
-                    literal("remove").then(
-                        argument("id", word()).suggests(ID_SUGGESTIONS).executes { remove(it, service) },
-                    ),
-                ).then(literal("clear").executes { clear(it, service) }).then(literal("list").executes { list(it) }),
+                literal("remove").then(
+                    argument("id", word()).suggests(ID_SUGGESTIONS).executes { remove(it, service) },
+                ),
+            ).then(literal("clear").executes { clear(it, service) }).then(literal("list").executes { list(it) }),
         )
     }
 
     private fun addNode(service: MarkerService) = literal("add").then(
         argument("id", word()).then(
-                literal("pos").then(
-                    argument("pos", Vec3Argument.vec3()).executes {
-                        add(it, service, Marker.Target.Fixed(listOf(Vec3Argument.getVec3(it, "pos"))))
-                    },
-                ),
-            ).then(
-                literal("entity").then(
-                    argument("selector", EntityArgument.entities()).executes {
-                        add(it, service, Marker.Target.Entity(uuids = emptySet(), selector = rawArgument(it)))
-                    },
-                ),
+            literal("pos").then(
+                argument("pos", Vec3Argument.vec3()).executes {
+                    add(it, service, Marker.Target.Fixed(listOf(Vec3Argument.getVec3(it, "pos"))))
+                },
             ),
+        ).then(
+            literal("entity").then(
+                argument("selector", EntityArgument.entities()).executes {
+                    add(it, service, Marker.Target.Entity(uuids = emptySet(), selector = rawArgument(it)))
+                },
+            ),
+        ),
     )
 
     private fun add(ctx: Ctx, service: MarkerService, target: Marker.Target): Int {
@@ -75,80 +75,80 @@ object MarkerCommand {
 
     private fun setNode(service: MarkerService) = literal("set").then(
         argument("id", word()).suggests(ID_SUGGESTIONS).then(
-                literal("color").then(
-                    argument("color", word()).executes { ctx ->
-                        val color = parseColor(getString(ctx, "color"))
-                        update(ctx, service) { it.copy(color = color) }
-                    },
-                ),
-            ).then(
-                literal("size").then(
-                    argument("size", floatArg(0.25f, 8f)).executes { ctx ->
-                        val size = getFloat(ctx, "size")
-                        update(ctx, service) { it.copy(size = size) }
-                    },
-                ),
-            ).then(
-                literal("label").then(
-                    argument("label", greedyString()).executes { ctx ->
-                        val label = getString(ctx, "label")
-                        update(ctx, service) { it.copy(label = label) }
-                    },
-                ),
-            ).then(
-                literal("icon").then(
-                    argument("icon", ResourceLocationArgument.id()).executes { ctx ->
-                        val icon = ResourceLocationArgument.getId(ctx, "icon")
-                        update(ctx, service) { it.copy(icon = icon) }
-                    },
-                ),
-            ).then(visibleToNode(service)).then(pointNode(service)).then(selectorNode(service)),
+            literal("color").then(
+                argument("color", word()).executes { ctx ->
+                    val color = parseColor(getString(ctx, "color"))
+                    update(ctx, service) { it.copy(color = color) }
+                },
+            ),
+        ).then(
+            literal("size").then(
+                argument("size", floatArg(0.25f, 8f)).executes { ctx ->
+                    val size = getFloat(ctx, "size")
+                    update(ctx, service) { it.copy(size = size) }
+                },
+            ),
+        ).then(
+            literal("label").then(
+                argument("label", greedyString()).executes { ctx ->
+                    val label = getString(ctx, "label")
+                    update(ctx, service) { it.copy(label = label) }
+                },
+            ),
+        ).then(
+            literal("icon").then(
+                argument("icon", ResourceLocationArgument.id()).executes { ctx ->
+                    val icon = ResourceLocationArgument.getId(ctx, "icon")
+                    update(ctx, service) { it.copy(icon = icon) }
+                },
+            ),
+        ).then(visibleToNode(service)).then(pointNode(service)).then(selectorNode(service)),
     )
 
     private fun visibleToNode(service: MarkerService) = literal("visible_to").then(literal("all").executes {
-            update(
-                it,
-                service
-            ) { m -> m.copy(visibleTo = emptySet()) }
-        }).then(
-            argument("players", EntityArgument.players()).executes { ctx ->
-                val ids = EntityArgument.getPlayers(ctx, "players").map { it.uuid }.toSet()
-                update(ctx, service) { it.copy(visibleTo = ids) }
-            },
-        )
+        update(
+            it,
+            service
+        ) { m -> m.copy(visibleTo = emptySet()) }
+    }).then(
+        argument("players", EntityArgument.players()).executes { ctx ->
+            val ids = EntityArgument.getPlayers(ctx, "players").map { it.uuid }.toSet()
+            update(ctx, service) { it.copy(visibleTo = ids) }
+        },
+    )
 
     private fun pointNode(service: MarkerService) = literal("point").then(
-            literal("add").then(
-                argument("pos", Vec3Argument.vec3()).executes { ctx ->
-                    val p = Vec3Argument.getVec3(ctx, "pos")
-                    updateFixed(ctx, service) { it.copy(positions = it.positions + p) }
-                },
-            ),
-        ).then(
-            literal("remove").then(
-                argument("index", integer(0)).executes { ctx ->
-                    val i = getInteger(ctx, "index")
-                    updateFixed(ctx, service) {
-                        if (i >= it.positions.size) throw BAD_INDEX.create()
-                        it.copy(positions = it.positions.filterIndexed { idx, _ -> idx != i })
-                    }
-                },
-            ),
-        )
+        literal("add").then(
+            argument("pos", Vec3Argument.vec3()).executes { ctx ->
+                val p = Vec3Argument.getVec3(ctx, "pos")
+                updateFixed(ctx, service) { it.copy(positions = it.positions + p) }
+            },
+        ),
+    ).then(
+        literal("remove").then(
+            argument("index", integer(0)).executes { ctx ->
+                val i = getInteger(ctx, "index")
+                updateFixed(ctx, service) {
+                    if (i >= it.positions.size) throw BAD_INDEX.create()
+                    it.copy(positions = it.positions.filterIndexed { idx, _ -> idx != i })
+                }
+            },
+        ),
+    )
 
     private fun selectorNode(service: MarkerService) = literal("selector").then(
-            argument("selector", EntityArgument.entities()).executes { ctx ->
-                val raw = rawArgument(ctx)
-                updateEntity(ctx, service, refresh = true) { it.copy(selector = raw) }
+        argument("selector", EntityArgument.entities()).executes { ctx ->
+            val raw = rawArgument(ctx)
+            updateEntity(ctx, service, refresh = true) { it.copy(selector = raw) }
+        },
+    ).then(
+        literal("offset").then(
+            argument("offset", doubleArg(-16.0, 16.0)).executes { ctx ->
+                val offset = getDouble(ctx, "offset")
+                updateEntity(ctx, service) { it.copy(yOffset = offset) }
             },
-        ).then(
-            literal("offset").then(
-                argument("offset", doubleArg(-16.0, 16.0)).executes { ctx ->
-                    val offset = getDouble(ctx, "offset")
-                    updateEntity(ctx, service) { it.copy(yOffset = offset) }
-                },
-            ),
-        )
+        ),
+    )
 
     private fun update(
         ctx: Ctx,
