@@ -27,7 +27,7 @@ class ForgeConfigBuilder(private val spec: ConfigSpec) : ConfigTreeWalker(LOGGER
     }
 
     private fun applyMeta(annotated: KAnnotatedElement) {
-        annotated.findAnnotation<Comment>()?.let { builder.comment(it.value) }
+        annotated.findAnnotation<Comment>()?.let { builder.comment(*it.value) }
         annotated.findAnnotation<Translation>()?.let { builder.translation(it.value) }
     }
 
