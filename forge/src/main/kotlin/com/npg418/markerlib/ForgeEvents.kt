@@ -5,6 +5,7 @@ import com.npg418.markerlib.datagen.ModLanguageProvider
 import com.npg418.markerlib.marker.client.ClientMarkers
 import com.npg418.markerlib.marker.client.MarkerRenderer
 import com.npg418.markerlib.marker.server.MarkerCommand
+import com.npg418.markerlib.marker.server.MarkerService
 import net.minecraft.server.level.ServerPlayer
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent
@@ -38,37 +39,37 @@ object CommonModEvents {
 object CommonForgeEvents {
     @SubscribeEvent
     fun onServerTick(e: TickEvent.ServerTickEvent) {
-        if (e.phase == TickEvent.Phase.END) MarkerLibForge.service.tick(e.server)
+        if (e.phase == TickEvent.Phase.END) MarkerService.tick(e.server)
     }
 
     @SubscribeEvent
     fun onServerStarted(@Suppress("UNUSED_PARAMETER") e: ServerStartedEvent) {
-        MarkerLibForge.service.markDirty()
+        MarkerService.markDirty()
     }
 
     @SubscribeEvent
     fun onEntityJoin(e: EntityJoinLevelEvent) {
-        if (!e.level.isClientSide) MarkerLibForge.service.markDirty()
+        if (!e.level.isClientSide) MarkerService.markDirty()
     }
 
     @SubscribeEvent
     fun onEntityLeave(e: EntityLeaveLevelEvent) {
-        if (!e.level.isClientSide) MarkerLibForge.service.markDirty()
+        if (!e.level.isClientSide) MarkerService.markDirty()
     }
 
     @SubscribeEvent
     fun onLivingDeath(e: LivingDeathEvent) {
-        if (!e.entity.level().isClientSide) MarkerLibForge.service.markDirty()
+        if (!e.entity.level().isClientSide) MarkerService.markDirty()
     }
 
     @SubscribeEvent
     fun onLogin(e: PlayerEvent.PlayerLoggedInEvent) {
-        (e.entity as? ServerPlayer)?.let(MarkerLibForge.service::syncTo)
+        (e.entity as? ServerPlayer)?.let(MarkerService::syncTo)
     }
 
     @SubscribeEvent
     fun onRegisterCommands(e: RegisterCommandsEvent) {
-        MarkerCommand.register(e.dispatcher, MarkerLibForge.service)
+        MarkerCommand.register(e.dispatcher, MarkerService)
     }
 }
 
