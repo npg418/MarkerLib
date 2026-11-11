@@ -1,6 +1,5 @@
-package com.npg418.markerlib.marker.common.network
+package com.npg418.markerlib.marker.shared
 
-import com.npg418.markerlib.marker.common.Marker
 import net.minecraft.network.FriendlyByteBuf
 
 sealed interface MarkerPacket

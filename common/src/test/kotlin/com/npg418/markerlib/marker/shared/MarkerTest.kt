@@ -1,4 +1,4 @@
-package com.npg418.markerlib.marker.common
+package com.npg418.markerlib.marker.shared
 
 import io.netty.buffer.Unpooled
 import net.minecraft.network.FriendlyByteBuf
@@ -6,12 +6,13 @@ import net.minecraft.world.phys.Vec3
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.util.*
+import kotlin.text.get
 
 class MarkerTest {
     companion object {
         private val SAMPLE = Marker(
             id = "test",
-            target = Marker.Target.Fixed(listOf(Vec3(1.5, 64.0, -3.25))),
+            targets = Marker.Target.Fixed(listOf(Vec3(1.5, 64.0, -3.25))),
             color = 0xFF00FF00.toInt(),
             label = "base",
             size = 1.5f,

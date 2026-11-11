@@ -1,6 +1,6 @@
 package com.npg418.markerlib
 
-import com.npg418.markerlib.marker.common.network.MarkerPacket
+import com.npg418.markerlib.marker.shared.MarkerPacket
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.server.level.ServerPlayer
 
@@ -9,10 +9,7 @@ class FabricPlatformHelper : PlatformHelper {
 
     override fun isModLoaded(id: String): Boolean = FabricLoader.getInstance().isModLoaded(id)
 
-    override fun sendPacket(
-        player: ServerPlayer,
-        packet: MarkerPacket
-    ) {
+    override fun sendPacket(player: ServerPlayer, packet: MarkerPacket) {
         TODO("Not yet implemented")
     }
 }

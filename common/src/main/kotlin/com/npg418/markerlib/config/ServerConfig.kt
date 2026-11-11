@@ -3,8 +3,8 @@ package com.npg418.markerlib.config
 import com.npg418.markerlib.config.api.*
 
 object ServerConfig : ConfigSpec(ConfigType.SERVER) {
-    @Name("entitySelector")
-    object Selector {
+    @Name("entitySearch")
+    object EntitySearch {
         @Comment(
             "How often (in ticks) entity selectors of markers are re-evaluated.",
             "Lower values reflect changes such as tags, teams and scores faster, at a higher server cost.",

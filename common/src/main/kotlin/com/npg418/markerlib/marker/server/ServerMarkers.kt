@@ -1,11 +1,38 @@
 package com.npg418.markerlib.marker.server
 
-import com.npg418.markerlib.marker.common.Marker
+import com.npg418.markerlib.marker.shared.Marker
+import com.npg418.markerlib.marker.shared.MarkerTarget
+import com.npg418.markerlib.marker.shared.getNullable
+import com.npg418.markerlib.marker.shared.putNullable
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.ListTag
 import net.minecraft.nbt.Tag
 import net.minecraft.server.MinecraftServer
 import net.minecraft.world.level.saveddata.SavedData
+
+data class ServerMarker(val marker: Marker, val visibleTo: String? = null, val entitySelector: String? = null) {
+    companion object {
+        fun fromTag(tag: CompoundTag) = ServerMarker(
+            marker = Marker.fromTag(tag.getCompound("marker")),
+            visibleTo = tag.getNullable("visibleTo", CompoundTag::getString),
+            entitySelector = tag.getNullable("entitySelector", CompoundTag::getString),
+        )
+    }
+
+    init {
+        require(entitySelector == null || marker.target is MarkerTarget.Entities) {
+            "entitySelector requires an Entities target"
+        }
+    }
+
+    val id: String get() = marker.id
+
+    fun toTag(): CompoundTag = CompoundTag().apply {
+        put("marker", marker.toTag())
+        putNullable("visibleTo", visibleTo, CompoundTag::putString)
+        putNullable("entitySelector", entitySelector, CompoundTag::putString)
+    }
+}
 
 class ServerMarkers : SavedData() {
     companion object {
@@ -13,22 +40,22 @@ class ServerMarkers : SavedData() {
 
         fun load(tag: CompoundTag) = ServerMarkers().also { d ->
             tag.getList("markers", Tag.TAG_COMPOUND.toInt()).forEach {
-                val m = Marker.fromTag(it as CompoundTag)
-                d.markers[m.id] = m
+                val marker = ServerMarker.fromTag(it as CompoundTag)
+                d.markers[marker.id] = marker
             }
         }
 
-        fun get(server: MinecraftServer): ServerMarkers =
+        fun of(server: MinecraftServer): ServerMarkers =
             server.overworld().dataStorage.computeIfAbsent(::load, ::ServerMarkers, NAME)
     }
 
-    val markers = LinkedHashMap<String, Marker>()
+    private val markers = LinkedHashMap<String, ServerMarker>()
 
-    val all: Collection<Marker> get() = markers.values
+    val all: Collection<ServerMarker> get() = markers.values
     operator fun get(id: String) = markers[id]
 
-    fun put(m: Marker) {
-        markers[m.id] = m
+    fun put(marker: ServerMarker) {
+        markers[marker.id] = marker
         setDirty()
     }
 

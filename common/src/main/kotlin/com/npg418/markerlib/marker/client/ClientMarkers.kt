@@ -1,6 +1,6 @@
 package com.npg418.markerlib.marker.client
 
-import com.npg418.markerlib.marker.common.Marker
+import com.npg418.markerlib.marker.shared.Marker
 
 object ClientMarkers {
     private val markers = LinkedHashMap<String, Marker>()
