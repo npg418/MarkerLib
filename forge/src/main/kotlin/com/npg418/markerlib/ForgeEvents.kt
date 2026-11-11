@@ -4,8 +4,8 @@ import com.npg418.markerlib.datagen.ModItemModelProvider
 import com.npg418.markerlib.datagen.ModLanguageProvider
 import com.npg418.markerlib.marker.client.ClientMarkers
 import com.npg418.markerlib.marker.client.MarkerRenderer
-import com.npg418.markerlib.marker.server.MarkerCommand
 import com.npg418.markerlib.marker.server.MarkerService
+import com.npg418.markerlib.marker.server.command.MarkerCommand
 import net.minecraft.server.level.ServerPlayer
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent
@@ -69,7 +69,7 @@ object CommonForgeEvents {
 
     @SubscribeEvent
     fun onRegisterCommands(e: RegisterCommandsEvent) {
-        MarkerCommand.register(e.dispatcher, MarkerService)
+        MarkerCommand.register(e.dispatcher)
     }
 }
 

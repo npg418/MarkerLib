@@ -17,4 +17,11 @@ object ServerConfig : ConfigSpec(ConfigType.SERVER) {
         )
         var minGap by entry(5) ranged 1..Int.MAX_VALUE
     }
+
+    @Name("markerCommand")
+    object MarkerCommand {
+        var requiredPermission by entry(2) ranged 2..4
+
+        var maxCreatePoints by entry(16) ranged 1..64
+    }
 }
