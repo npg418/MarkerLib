@@ -1,8 +1,8 @@
 package com.npg418.markerlib.marker.client
 
 import com.mojang.math.Axis
-import com.npg418.markerlib.config.CommonConfig
-import com.npg418.markerlib.marker.common.Marker
+import com.npg418.markerlib.config.ClientConfig
+import com.npg418.markerlib.marker.shared.Marker
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
 import org.joml.Matrix4f
@@ -14,7 +14,6 @@ import kotlin.math.roundToInt
 
 object MarkerRenderer {
     private val viewProj = Matrix4f()
-    private const val MARGIN = 20f
 
     fun captureMatrices(projection: Matrix4f, view: Matrix4f) {
         viewProj.set(projection).mul(view)
@@ -50,14 +49,16 @@ object MarkerRenderer {
                 val sx = (nx * 0.5f + 0.5f) * w
                 val sy = (0.5f - ny * 0.5f) * h
 
-                val onScreen = !behind && sx in MARGIN..(w - MARGIN) && sy in MARGIN..(h - MARGIN)
+                val onScreen =
+                    !behind && sx in ClientConfig.Rendering.edgeMargin..(w - ClientConfig.Rendering.edgeMargin) &&
+                        sy in ClientConfig.Rendering.edgeMargin..(h - ClientConfig.Rendering.edgeMargin)
                 if (onScreen) drawIcon(g, m, sx, sy, dist) else drawEdge(g, m, sx, sy, w, h)
             }
         }
     }
 
     private fun drawIcon(g: GuiGraphics, m: Marker, x: Float, y: Float, dist: Double) {
-        val s = (CommonConfig.Rendering.baseIconSize * m.size).roundToInt().coerceAtLeast(1)
+        val s = (ClientConfig.Rendering.baseIconSize * m.size).roundToInt().coerceAtLeast(1)
         val font = Minecraft.getInstance().font
         g.pose().pushPose()
         g.pose().translate(x, y, 0f)
@@ -73,8 +74,11 @@ object MarkerRenderer {
         val cy = h / 2
         val dx = sx - cx
         val dy = sy - cy
-        val k = min((cx - MARGIN) / abs(dx), (cy - MARGIN) / abs(dy))
-        val s = (CommonConfig.Rendering.baseIconSize * m.size).roundToInt().coerceAtLeast(1)
+        val k = min(
+            (cx - ClientConfig.Rendering.edgeMargin) / abs(dx),
+            (cy - ClientConfig.Rendering.edgeMargin) / abs(dy),
+        )
+        val s = (ClientConfig.Rendering.baseIconSize * m.size).roundToInt().coerceAtLeast(1)
         g.pose().pushPose()
         g.pose().translate(cx + dx * k, cy + dy * k, 0f)
         g.pose().mulPose(Axis.ZP.rotation(atan2(dy, dx)))
