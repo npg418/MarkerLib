@@ -1,5 +1,6 @@
 package com.npg418.markerlib.marker.client
 
+import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.math.Axis
 import com.npg418.markerlib.config.ClientConfig
 import com.npg418.markerlib.marker.shared.Marker
@@ -95,7 +96,9 @@ object MarkerRenderer {
         val gr = (argb shr 8 and 0xFF) / 255f
         val b = (argb and 0xFF) / 255f
         g.setColor(r, gr, b, a)
+        RenderSystem.enableBlend()
         block()
+        RenderSystem.disableBlend()
         g.setColor(1f, 1f, 1f, 1f)
     }
 }
