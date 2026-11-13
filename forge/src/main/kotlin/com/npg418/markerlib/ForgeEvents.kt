@@ -19,6 +19,7 @@ import net.minecraftforge.event.entity.EntityLeaveLevelEvent
 import net.minecraftforge.event.entity.living.LivingDeathEvent
 import net.minecraftforge.event.entity.player.PlayerEvent
 import net.minecraftforge.event.server.ServerStartedEvent
+import net.minecraftforge.event.server.ServerStoppedEvent
 import net.minecraftforge.eventbus.api.SubscribeEvent
 import net.minecraftforge.fml.common.Mod
 
@@ -48,6 +49,11 @@ object CommonForgeEvents {
     }
 
     @SubscribeEvent
+    fun onServerStopped(@Suppress("UNUSED_PARAMETER") e: ServerStoppedEvent) {
+        MarkerService.onServerStopped()
+    }
+
+    @SubscribeEvent
     fun onEntityJoin(e: EntityJoinLevelEvent) {
         if (!e.level.isClientSide) MarkerService.markDirty()
     }
@@ -64,7 +70,15 @@ object CommonForgeEvents {
 
     @SubscribeEvent
     fun onLogin(e: PlayerEvent.PlayerLoggedInEvent) {
-        (e.entity as? ServerPlayer)?.let(MarkerService::syncTo)
+        (e.entity as? ServerPlayer)?.let {
+            MarkerService.markDirty()
+            MarkerService.syncTo(it)
+        }
+    }
+
+    @SubscribeEvent
+    fun onLogout(e: PlayerEvent.PlayerLoggedOutEvent) {
+        if (!e.entity.level().isClientSide) MarkerService.markDirty()
     }
 
     @SubscribeEvent
