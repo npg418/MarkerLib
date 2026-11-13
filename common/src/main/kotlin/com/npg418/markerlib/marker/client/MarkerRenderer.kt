@@ -33,10 +33,9 @@ object MarkerRenderer {
             for (pos in m.target.resolveAll(ctx, partialTick)) {
                 val dist = cam.distanceTo(pos)
 
-                val v =
-                    Vector4f((pos.x - cam.x).toFloat(), (pos.y - cam.y).toFloat(), (pos.z - cam.z).toFloat(), 1f).mul(
-                        viewProj,
-                    )
+                val v = Vector4f(
+                    (pos.x - cam.x).toFloat(), (pos.y - cam.y).toFloat(), (pos.z - cam.z).toFloat(), 1f
+                ).mul(viewProj)
 
                 val behind = v.w <= 0f
                 var nx = v.x / v.w
@@ -49,9 +48,8 @@ object MarkerRenderer {
                 val sx = (nx * 0.5f + 0.5f) * w
                 val sy = (0.5f - ny * 0.5f) * h
 
-                val onScreen =
-                    !behind && sx in ClientConfig.Rendering.edgeMargin..(w - ClientConfig.Rendering.edgeMargin) &&
-                        sy in ClientConfig.Rendering.edgeMargin..(h - ClientConfig.Rendering.edgeMargin)
+                val margin = ClientConfig.Rendering.edgeMargin
+                val onScreen = !behind && (m.arrowIcon == null || sx in margin..(w - margin) && sy in margin..(h - margin))
                 if (onScreen) drawIcon(g, m, sx, sy, dist) else drawEdge(g, m, sx, sy, w, h)
             }
         }
