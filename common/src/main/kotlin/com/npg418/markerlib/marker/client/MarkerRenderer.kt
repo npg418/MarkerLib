@@ -63,7 +63,9 @@ object MarkerRenderer {
         tint(g, m.color) {
             g.blit(m.icon, -s / 2, -s / 2, s, s, 0f, 0f, 1, 1, 1, 1)
         }
-        g.drawCenteredString(font, "${dist.roundToInt()}m", 0, 10, m.color)
+        if (m.showDistance) {
+            g.drawCenteredString(font, "${dist.roundToInt()}m", 0, 10, m.color)
+        }
         g.pose().popPose()
     }
 
