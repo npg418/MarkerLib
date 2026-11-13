@@ -8,13 +8,13 @@ import net.minecraft.commands.Commands.literal
 object MarkerCommand {
     fun register(dispatcher: CommandDispatcher<CommandSourceStack>) {
         dispatcher.register(
-            literal("marker").requires { it.hasPermission(ServerConfig.MarkerCommand.requiredPermission) }
-                .then(CreateCommand.node)
-                .then(TargetCommand.node)
-                .then(SetCommand.node)
-                .then(ManageCommand.removeNode)
-                .then(ManageCommand.clearNode)
-                .then(ManageCommand.listNode),
+            literal("marker").requires { it.hasPermission(2) }
+                .then(CreateCommand.node())
+                .then(TargetCommand.node())
+                .then(SetCommand.node())
+                .then(ManageCommand.removeNode())
+                .then(ManageCommand.clearNode())
+                .then(ManageCommand.listNode()),
         )
     }
 }

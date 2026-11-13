@@ -13,8 +13,8 @@ import net.minecraft.commands.arguments.EntityArgument.entities
 import net.minecraft.network.chat.Component
 
 object CreateCommand {
-    val node: LiteralArgumentBuilder<CommandSourceStack> = literal("create").then(
-        idArgumentNode.then(
+    fun node(): LiteralArgumentBuilder<CommandSourceStack> = literal("create").then(
+        idArgumentNode().then(
             literal("fixed").then(
                 positionsNode { ctx, positions ->
                     create(

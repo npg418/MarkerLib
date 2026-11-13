@@ -9,8 +9,8 @@ import net.minecraft.commands.Commands.literal
 import net.minecraft.network.chat.Component
 
 object ManageCommand {
-    val removeNode: LiteralArgumentBuilder<CommandSourceStack> = literal("remove").then(
-        idArgumentNode.executes {
+    fun removeNode(): LiteralArgumentBuilder<CommandSourceStack> = literal("remove").then(
+        idArgumentNode().executes {
             if (!MarkerService.remove(it.source.server, it.id)) {
                 throw CommandErrors.NOT_FOUND.create(it.id)
             }
@@ -19,13 +19,13 @@ object ManageCommand {
         },
     )
 
-    val clearNode: LiteralArgumentBuilder<CommandSourceStack> = literal("clear").executes {
+    fun clearNode(): LiteralArgumentBuilder<CommandSourceStack> = literal("clear").executes {
         MarkerService.clear(it.source.server)
         it.source.sendSuccess({ Component.literal("Cleared all markers") }, true)
         return@executes 1
     }
 
-    val listNode: LiteralArgumentBuilder<CommandSourceStack> = literal("list").executes {
+    fun listNode(): LiteralArgumentBuilder<CommandSourceStack> = literal("list").executes {
         val entries = ServerMarkers.of(it.source.server).all
         val text = entries.joinToString { m ->
             when (val t = m.marker.target) {

@@ -11,9 +11,9 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 
 object TargetCommand {
-    val node: LiteralArgumentBuilder<CommandSourceStack> = literal("target").then(
+    fun node(): LiteralArgumentBuilder<CommandSourceStack> = literal("target").then(
         literal("add").then(
-            idArgumentNode.then(
+            idArgumentNode().then(
                 positionsNode { ctx, positions ->
                     updateTarget(ctx) {
                         if (it !is MarkerTarget.Fixed) throw CommandErrors.NOT_FIXED.create()
@@ -24,7 +24,7 @@ object TargetCommand {
         ),
     ).then(
         literal("remove").then(
-            idArgumentNode.then(
+            idArgumentNode().then(
                 positionsNode(suggestions = ::existingPoints) { ctx, positions ->
                     updateTarget(ctx) {
                         if (it !is MarkerTarget.Fixed) throw CommandErrors.NOT_FIXED.create()

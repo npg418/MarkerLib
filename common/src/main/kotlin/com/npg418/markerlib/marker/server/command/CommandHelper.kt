@@ -35,6 +35,8 @@ internal object CommandErrors {
         SimpleCommandExceptionType(Component.literal("Cannot remove the last point; use 'remove <id>' instead"))
 }
 
+private const val MAX_POINTS = 16
+
 internal fun positionsNode(
     index: Int = 1,
     suggestions: ((Ctx, Int) -> Collection<String>)? = null,
@@ -51,7 +53,7 @@ internal fun positionsNode(
             )
         }
     }
-    if (index < ServerConfig.MarkerCommand.maxCreatePoints) node.then(positionsNode(index + 1, suggestions, action))
+    if (index < MAX_POINTS) node.then(positionsNode(index + 1, suggestions, action))
     return node
 }
 
@@ -60,7 +62,7 @@ internal fun Ctx.rawArgument(): String = this.nodes.last().range.get(this.input)
 private val idSuggestions = SuggestionProvider<CommandSourceStack> { ctx, builder ->
     SharedSuggestionProvider.suggest(ServerMarkers.of(ctx.source.server).all.map { it.id }, builder)
 }
-internal val idArgumentNode = argument("id", word()).suggests(idSuggestions)
+internal fun idArgumentNode() = argument("id", word()).suggests(idSuggestions)
 
 internal val Ctx.id get() = getString(this, "id")
 

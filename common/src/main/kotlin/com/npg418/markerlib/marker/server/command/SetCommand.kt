@@ -18,7 +18,30 @@ import net.minecraft.commands.arguments.EntityArgument
 import net.minecraft.commands.arguments.ResourceLocationArgument
 
 object SetCommand {
-    private val arrowNode = literal("arrow")
+    fun node(): LiteralArgumentBuilder<CommandSourceStack> = literal("set").then(
+        idArgumentNode().then(property("color", word(), StringArgumentType::getString) { copy(color = parseColor(it)) })
+            .then(property("size", floatArg(0.25f, 8f), FloatArgumentType::getFloat) { copy(size = it) })
+            .then(property("label", greedyString(), StringArgumentType::getString) { copy(label = it) })
+            .then(property("icon", ResourceLocationArgument.id(), ResourceLocationArgument::getId) { copy(icon = it) })
+            .then(arrowNode())
+            .then(property("show_distance", bool(), BoolArgumentType::getBool) { copy(showDistance = it) })
+            .then(visibleToNode())
+            .then(selectorNode()),
+    )
+
+    private fun <T> property(
+        name: String,
+        type: ArgumentType<T>,
+        read: (Ctx, String) -> T,
+        change: Marker.(T) -> Marker,
+    ) = literal(name).then(
+        argument(name, type).executes { ctx ->
+            val value = read(ctx, name)
+            updateServerMarker(ctx) { it.copy(marker = it.marker.change(value)) }
+        },
+    )
+
+    private fun arrowNode() = literal("arrow")
         .then(
             literal("off").executes { ctx ->
                 updateMarker(ctx) { it.copy(arrowIcon = null) }
@@ -31,7 +54,7 @@ object SetCommand {
             },
         )
 
-    private val visibleToNode = literal("visible_to")
+    private fun visibleToNode() = literal("visible_to")
         .then(literal("all").executes { ctx -> updateServerMarker(ctx) { it.copy(visibleTo = null) } })
         .then(
             argument("players", EntityArgument.players()).executes { ctx ->
@@ -39,36 +62,14 @@ object SetCommand {
                 updateServerMarker(ctx, refresh = true) { it.copy(visibleTo = raw) }
             },
         )
-    private val selectorNode = literal("selector").then(
+
+    private fun selectorNode() = literal("selector").then(
         argument("selector", EntityArgument.entities()).executes { ctx ->
             val raw = ctx.rawArgument()
             updateServerMarker(ctx, refresh = true) { e ->
                 if (e.marker.target !is MarkerTarget.Entities) throw CommandErrors.NOT_ENTITIES.create()
                 e.copy(entitySelector = raw)
             }
-        },
-    )
-
-    val node: LiteralArgumentBuilder<CommandSourceStack> = literal("set").then(
-        idArgumentNode.then(property("color", word(), StringArgumentType::getString) { copy(color = parseColor(it)) })
-            .then(property("size", floatArg(0.25f, 8f), FloatArgumentType::getFloat) { copy(size = it) })
-            .then(property("label", greedyString(), StringArgumentType::getString) { copy(label = it) })
-            .then(property("icon", ResourceLocationArgument.id(), ResourceLocationArgument::getId) { copy(icon = it) })
-            .then(arrowNode)
-            .then(property("show_distance", bool(), BoolArgumentType::getBool) { copy(showDistance = it) })
-            .then(visibleToNode)
-            .then(selectorNode),
-    )
-
-    private fun <T> property(
-        name: String,
-        type: ArgumentType<T>,
-        read: (Ctx, String) -> T,
-        change: Marker.(T) -> Marker,
-    ) = literal(name).then(
-        argument(name, type).executes { ctx ->
-            val value = read(ctx, name)
-            updateServerMarker(ctx) { it.copy(marker = it.marker.change(value)) }
         },
     )
 }
