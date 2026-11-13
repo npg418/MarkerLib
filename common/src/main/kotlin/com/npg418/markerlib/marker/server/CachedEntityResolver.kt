@@ -6,13 +6,13 @@ import net.minecraft.commands.arguments.selector.EntitySelector
 import net.minecraft.server.MinecraftServer
 import java.util.*
 
-class EntityResolveCache(private val playerOnly: Boolean = false) {
+class CachedEntityResolver(private val playerOnly: Boolean = false) {
     private val parsed = HashMap<String, EntitySelector>()
     private val resolved = HashMap<String, Set<UUID>?>()
 
     fun invalidate() = resolved.clear()
 
-    fun get(server: MinecraftServer, selector: String): Set<UUID>? {
+    fun resolve(server: MinecraftServer, selector: String): Set<UUID>? {
         if (resolved.containsKey(selector)) return resolved[selector]
         return evaluate(server, selector).also { resolved[selector] = it }
     }

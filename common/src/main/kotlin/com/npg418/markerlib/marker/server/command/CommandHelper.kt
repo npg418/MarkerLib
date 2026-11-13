@@ -70,7 +70,10 @@ internal fun updateServerMarker(ctx: Ctx, refresh: Boolean = false, transform: (
     val marker = ServerMarkers.of(server)[id] ?: throw CommandErrors.NOT_FOUND.create(id)
     val transformed = transform(marker)
     MarkerService.put(server, transformed)
-    if (refresh) MarkerService.refresh(server, transformed)
+    if (refresh) {
+        MarkerService.refreshVisibleTo(server, transformed)
+        MarkerService.refreshEntities(server, transformed)
+    }
     ctx.source.sendSuccess({ Component.literal("Updated marker $id") }, true)
     return 1
 }

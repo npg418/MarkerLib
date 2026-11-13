@@ -44,7 +44,8 @@ object CreateCommand {
         val server = ctx.source.server
         if (ServerMarkers.of(server)[marker.id] != null) throw CommandErrors.EXISTS.create(marker.id)
         MarkerService.put(server, marker)
-        MarkerService.refresh(server, marker)
+        MarkerService.refreshVisibleTo(server, marker)
+        MarkerService.refreshEntities(server, marker)
         ctx.source.sendSuccess({ Component.literal("Created marker ${marker.id}") }, true)
         return 1
     }

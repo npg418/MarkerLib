@@ -3,6 +3,7 @@ package com.npg418.markerlib.marker.server
 import com.npg418.markerlib.Platform
 import com.npg418.markerlib.config.ServerConfig
 import com.npg418.markerlib.marker.shared.AddPacket
+import com.npg418.markerlib.marker.shared.MarkerTarget
 import com.npg418.markerlib.marker.shared.RemovePacket
 import com.npg418.markerlib.marker.shared.SyncPacket
 import net.minecraft.server.MinecraftServer
@@ -10,60 +11,46 @@ import net.minecraft.server.level.ServerPlayer
 import java.util.*
 
 object MarkerService {
-    private val entityCache = EntityResolveCache()
-    private val playerCache = EntityResolveCache(true)
+    private val entityResolver = CachedEntityResolver()
+    private val playerResolver = CachedEntityResolver(true)
 
-    private fun invalidateCaches() {
-        entityCache.invalidate()
-        playerCache.invalidate()
+    private val lastSent = HashMap<String, Set<UUID>>()
+
+    private fun ServerMarker.isVisibleTo(player: ServerPlayer): Boolean {
+        val selector = visibleTo ?: return true
+        return player.uuid in (playerResolver.resolve(player.server, selector) ?: emptySet())
     }
 
-    private val viewers = HashMap<String, Set<UUID>>()
-
     fun syncTo(player: ServerPlayer) {
-        val server = player.server
-        invalidateCaches()
-        val visible = ServerMarkers.of(server).all.filter { canSee(server, it, player) }.map { it.marker }
+        playerResolver.invalidate()
+        val visible = ServerMarkers.of(player.server).all.filter { it.isVisibleTo(player) }.map { it.marker }
         Platform.sendPacket(player, SyncPacket(visible))
     }
 
     fun put(server: MinecraftServer, marker: ServerMarker) {
-        invalidateCaches()
-        store(server, marker)
+        ServerMarkers.of(server).put(marker)
+        marker.visibleTo?.let { selector ->
+            playerResolver.resolve(server, selector)?.let { lastSent[marker.id] = it }
+        }
+        server.playerList.players.forEach {
+            Platform.sendPacket(
+                it,
+                if (marker.isVisibleTo(it)) AddPacket(marker.marker) else RemovePacket(marker.id),
+            )
+        }
     }
 
     fun remove(server: MinecraftServer, id: String): Boolean {
         ServerMarkers.of(server).remove(id) ?: return false
-        viewers.remove(id)
+        lastSent.remove(id)
         server.playerList.players.forEach { Platform.sendPacket(it, RemovePacket(id)) }
         return true
     }
 
     fun clear(server: MinecraftServer) {
         ServerMarkers.of(server).clear()
-        viewers.clear()
+        lastSent.clear()
         server.playerList.players.forEach { Platform.sendPacket(it, SyncPacket(emptyList())) }
-    }
-
-    private fun canSee(server: MinecraftServer, marker: ServerMarker, player: ServerPlayer): Boolean {
-        val pred = marker.visibleTo ?: return true
-        return player.uuid in (playerCache.get(server, pred) ?: emptySet())
-    }
-
-    private fun store(server: MinecraftServer, marker: ServerMarker) {
-        ServerMarkers.of(server).put(marker)
-        val pred = marker.visibleTo
-        if (pred == null) {
-            viewers.remove(marker.id)
-        } else {
-            viewers[marker.id] = playerCache.get(server, pred) ?: emptySet()
-        }
-        server.playerList.players.forEach {
-            Platform.sendPacket(
-                it,
-                if (canSee(server, marker, it)) AddPacket(marker.marker) else RemovePacket(marker.id),
-            )
-        }
     }
 
     private var dirty = false
@@ -80,14 +67,18 @@ object MarkerService {
         if (!periodic && !onDemand) return
         dirty = false
         lastRefresh = now
-        invalidateCaches()
-        ServerMarkers.of(server).all.toList().forEach { refresh(server, it) }
+        playerResolver.invalidate()
+        entityResolver.invalidate()
+        ServerMarkers.of(server).all.toList().forEach {
+            refreshVisibleTo(server, it)
+            refreshEntities(server, it)
+        }
     }
 
-    fun refresh(server: MinecraftServer, marker: ServerMarker) {
-        val pred = marker.visibleTo ?: return
-        val now = playerCache.get(server, pred) ?: return
-        val old = viewers.put(marker.id, now) ?: return
+    fun refreshVisibleTo(server: MinecraftServer, marker: ServerMarker) {
+        val selector = marker.visibleTo ?: return
+        val now = playerResolver.resolve(server, selector) ?: return
+        val old = lastSent.put(marker.id, now) ?: return
         (now - old).forEach {
             server.playerList.getPlayer(it)?.let { p -> Platform.sendPacket(p, AddPacket(marker.marker)) }
         }
@@ -96,9 +87,22 @@ object MarkerService {
         }
     }
 
+    fun refreshEntities(server: MinecraftServer, marker: ServerMarker) {
+        val selector = marker.entitySelector ?: return
+        val found = entityResolver.resolve(server, selector) ?: return
+        val target = marker.marker.target as? MarkerTarget.Entities ?: return
+        if (found == target.entities) return
+        val updated = marker.copy(marker = marker.marker.copy(target = target.copy(entities = found)))
+        ServerMarkers.of(server).put(updated)
+        server.playerList.players.forEach {
+            if (updated.isVisibleTo(it)) Platform.sendPacket(it, AddPacket(updated.marker))
+        }
+    }
+
     fun onServerStopped() {
-        viewers.clear()
-        invalidateCaches()
+        lastSent.clear()
+        playerResolver.invalidate()
+        entityResolver.invalidate()
         dirty = false
     }
 }

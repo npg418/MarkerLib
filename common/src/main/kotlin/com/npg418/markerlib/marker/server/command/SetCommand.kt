@@ -36,7 +36,7 @@ object SetCommand {
         .then(
             argument("players", EntityArgument.players()).executes { ctx ->
                 val raw = ctx.rawArgument()
-                updateServerMarker(ctx) { it.copy(visibleTo = raw) }
+                updateServerMarker(ctx, refresh = true) { it.copy(visibleTo = raw) }
             },
         )
     private val selectorNode = literal("selector").then(
