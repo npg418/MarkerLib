@@ -70,6 +70,7 @@ object MarkerRenderer {
     }
 
     private fun drawEdge(g: GuiGraphics, m: Marker, sx: Float, sy: Float, w: Float, h: Float) {
+        if (m.arrowIcon == null) return
         val cx = w / 2
         val cy = h / 2
         val dx = sx - cx
