@@ -20,10 +20,11 @@ import net.minecraft.commands.arguments.ResourceLocationArgument
 object SetCommand {
     fun node(): LiteralArgumentBuilder<CommandSourceStack> = literal("set").then(
         idArgumentNode().then(property("color", word(), StringArgumentType::getString) { copy(color = parseColor(it)) })
-            .then(property("size", floatArg(0.25f, 8f), FloatArgumentType::getFloat) { copy(size = it) })
-            .then(property("label", greedyString(), StringArgumentType::getString) { copy(label = it) })
             .then(property("icon", ResourceLocationArgument.id(), ResourceLocationArgument::getId) { copy(icon = it) })
             .then(arrowNode())
+            .then(property("size", floatArg(0.25f, 8f), FloatArgumentType::getFloat) { copy(size = it) })
+            .then(property("blend", floatArg(0f, 1f), FloatArgumentType::getFloat) { copy(blend = it) })
+            .then(property("label", greedyString(), StringArgumentType::getString) { copy(label = it) })
             .then(property("show_distance", bool(), BoolArgumentType::getBool) { copy(showDistance = it) })
             .then(visibleToNode())
             .then(selectorNode()),

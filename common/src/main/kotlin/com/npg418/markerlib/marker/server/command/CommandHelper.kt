@@ -7,7 +7,6 @@ import com.mojang.brigadier.context.CommandContext
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType
 import com.mojang.brigadier.suggestion.SuggestionProvider
-import com.npg418.markerlib.config.ServerConfig
 import com.npg418.markerlib.marker.server.MarkerService
 import com.npg418.markerlib.marker.server.ServerMarker
 import com.npg418.markerlib.marker.server.ServerMarkers
@@ -27,7 +26,7 @@ internal typealias Ctx = CommandContext<CommandSourceStack>
 internal object CommandErrors {
     val NOT_FOUND = DynamicCommandExceptionType { Component.literal("Marker not found: $it") }
     val EXISTS = DynamicCommandExceptionType { Component.literal("Marker already exists: $it") }
-    val BAD_COLOR = SimpleCommandExceptionType(Component.literal("Color must be RRGGBB or AARRGGBB (hex)"))
+    val BAD_COLOR = SimpleCommandExceptionType(Component.literal("Color must be RRGGBB (hex)"))
     val NOT_FIXED = SimpleCommandExceptionType(Component.literal("Marker target is not fixed points"))
     val NOT_ENTITIES = SimpleCommandExceptionType(Component.literal("Marker target is not an entity selector"))
     val NO_SUCH_POINT = SimpleCommandExceptionType(Component.literal("No matching point"))
@@ -91,10 +90,8 @@ internal fun samePoint(a: Vec3, b: Vec3): Boolean = a.distanceToSqr(b) <= POINT_
 
 internal fun parseColor(s: String): Int {
     val hex = s.removePrefix("#")
-    val value = hex.toLongOrNull(16) ?: throw CommandErrors.BAD_COLOR.create()
-    return when (hex.length) {
-        6 -> (0xFF000000 or value).toInt()
-        8 -> value.toInt()
-        else -> throw CommandErrors.BAD_COLOR.create()
+    if (hex.length != 6 || !hex.all { it in '0'..'9' || it in 'a'..'f' || it in 'A'..'F' }) {
+        throw CommandErrors.BAD_COLOR.create()
     }
+    return hex.toInt(16)
 }

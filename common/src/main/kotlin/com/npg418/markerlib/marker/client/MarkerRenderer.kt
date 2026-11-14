@@ -1,10 +1,10 @@
 package com.npg418.markerlib.marker.client
 
-import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.math.Axis
 import com.npg418.markerlib.config.ClientConfig
 import com.npg418.markerlib.marker.shared.Marker
 import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.Font
 import net.minecraft.client.gui.GuiGraphics
 import org.joml.Matrix4f
 import org.joml.Vector4f
@@ -50,27 +50,36 @@ object MarkerRenderer {
                 val sy = (0.5f - ny * 0.5f) * h
 
                 val margin = ClientConfig.Rendering.edgeMargin
-                val onScreen = !behind && (m.arrowIcon == null || sx in margin..(w - margin) && sy in margin..(h - margin))
-                if (onScreen) drawIcon(g, m, sx, sy, dist) else drawEdge(g, m, sx, sy, w, h)
+                val onScreen =
+                    !behind && (m.arrowIcon == null || sx in margin..(w - margin) && sy in margin..(h - margin))
+                if (onScreen) drawIcon(g, m, sx, sy, dist, mc.font) else drawEdge(g, m, sx, sy, w, h, dist, mc.font)
             }
         }
     }
 
-    private fun drawIcon(g: GuiGraphics, m: Marker, x: Float, y: Float, dist: Double) {
+    private fun drawIcon(g: GuiGraphics, m: Marker, x: Float, y: Float, dist: Double, font: Font) {
         val s = (ClientConfig.Rendering.baseIconSize * m.size).roundToInt().coerceAtLeast(1)
-        val font = Minecraft.getInstance().font
         g.pose().pushPose()
         g.pose().translate(x, y, 0f)
-        tint(g, m.color) {
-            g.blit(m.icon, -s / 2, -s / 2, s, s, 0f, 0f, 1, 1, 1, 1)
-        }
         if (m.showDistance) {
-            g.drawCenteredString(font, "${dist.roundToInt()}m", 0, 10, m.color)
+            g.drawCenteredString(font, "${dist.roundToInt()}m", 0, s + 2, blended(m))
+        }
+        tint(g, m) {
+            g.blit(m.icon, -s / 2, -s / 2, s, s, 0f, 0f, 1, 1, 1, 1)
         }
         g.pose().popPose()
     }
 
-    private fun drawEdge(g: GuiGraphics, m: Marker, sx: Float, sy: Float, w: Float, h: Float) {
+    private fun drawEdge(
+        g: GuiGraphics,
+        m: Marker,
+        sx: Float,
+        sy: Float,
+        w: Float,
+        h: Float,
+        dist: Double,
+        font: Font
+    ) {
         if (m.arrowIcon == null) return
         val cx = w / 2
         val cy = h / 2
@@ -83,22 +92,30 @@ object MarkerRenderer {
         val s = (ClientConfig.Rendering.baseIconSize * m.size).roundToInt().coerceAtLeast(1)
         g.pose().pushPose()
         g.pose().translate(cx + dx * k, cy + dy * k, 0f)
-        g.pose().mulPose(Axis.ZP.rotation(atan2(dy, dx)))
-        tint(g, m.color) {
+        if (m.showDistance) {
+            g.drawCenteredString(font, "${dist.roundToInt()}m", 0, s + 2, blended(m))
+        }
+        tint(g, m) {
+            g.pose().mulPose(Axis.ZP.rotation(atan2(dy, dx)))
             g.blit(m.arrowIcon, -s / 2, -s / 2, s, s, 0f, 0f, 1, 1, 1, 1)
         }
         g.pose().popPose()
     }
 
-    private fun tint(g: GuiGraphics, argb: Int, block: () -> Unit) {
-        val a = (argb ushr 24 and 0xFF) / 255f
-        val r = (argb shr 16 and 0xFF) / 255f
-        val gr = (argb shr 8 and 0xFF) / 255f
-        val b = (argb and 0xFF) / 255f
-        g.setColor(r, gr, b, a)
-        RenderSystem.enableBlend()
+    private fun blended(m: Marker): Int {
+        fun mix(c: Int): Int =
+            (255f + (c - 255f) * m.blend.coerceIn(0f, 1f)).roundToInt().coerceIn(0, 255)
+
+        val r = mix(m.color shr 16 and 0xFF)
+        val g = mix(m.color shr 8 and 0xFF)
+        val b = mix(m.color and 0xFF)
+        return (0xFF shl 24) or (r shl 16) or (g shl 8) or b
+    }
+
+    private fun tint(g: GuiGraphics, m: Marker, block: () -> Unit) {
+        val argb = blended(m)
+        g.setColor((argb shr 16 and 0xFF) / 255f, (argb shr 8 and 0xFF) / 255f, (argb and 0xFF) / 255f, 1f)
         block()
-        RenderSystem.disableBlend()
         g.setColor(1f, 1f, 1f, 1f)
     }
 }

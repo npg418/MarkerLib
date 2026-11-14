@@ -15,13 +15,15 @@ data class Marker(
     val icon: ResourceLocation = DEFAULT_ICON,
     val arrowIcon: ResourceLocation? = DEFAULT_ARROW,
     val size: Float = 1f,
-    val color: Int = 0xFFFF3030.toInt(),
+    val color: Int = 0xFF3030,
+    val blend: Float = 1f,
     val label: String? = null,
     val showDistance: Boolean = true,
 ) {
     companion object {
         val DEFAULT_ICON = ResourceLocation("markerlib", "textures/gui/marker.png")
         val DEFAULT_ARROW = ResourceLocation("markerlib", "textures/gui/arrow.png")
+        const val RGB_MASK = 0xFFFFFF
 
         fun read(buf: FriendlyByteBuf) = Marker(
             id = buf.readUtf(),
@@ -29,7 +31,8 @@ data class Marker(
             icon = buf.readResourceLocation(),
             arrowIcon = buf.readNullable { it.readResourceLocation() },
             size = buf.readFloat(),
-            color = buf.readInt(),
+            color = buf.readInt() and RGB_MASK,
+            blend = buf.readFloat(),
             label = buf.readNullable { it.readUtf() },
             showDistance = buf.readBoolean(),
         )
@@ -40,7 +43,8 @@ data class Marker(
             icon = ResourceLocation(tag.getString("icon")),
             arrowIcon = tag.getNullable("arrow") { ResourceLocation(getString(it)) },
             size = tag.getNullable("size", CompoundTag::getFloat) ?: 1f,
-            color = tag.getInt("color"),
+            color = tag.getInt("color") and RGB_MASK,
+            blend = tag.getFloat("blend"),
             label = tag.getNullable("label", CompoundTag::getString),
             showDistance = tag.getBoolean("showDistance"),
         )
@@ -53,6 +57,7 @@ data class Marker(
         buf.writeNullable(arrowIcon) { b, r -> b.writeResourceLocation(r) }
         buf.writeFloat(size)
         buf.writeInt(color)
+        buf.writeFloat(blend)
         buf.writeNullable(label) { b, s -> b.writeUtf(s) }
         buf.writeBoolean(showDistance)
     }
@@ -64,6 +69,7 @@ data class Marker(
         putNullable("arrow", arrowIcon) { k, v -> putString(k, v.toString()) }
         putFloat("size", size)
         putInt("color", color)
+        putFloat("blend", blend)
         putNullable("label", label, CompoundTag::putString)
         putBoolean("showDistance", showDistance)
     }
