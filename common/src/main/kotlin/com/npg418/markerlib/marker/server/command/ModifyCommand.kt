@@ -38,7 +38,7 @@ object SetCommand {
     ) = literal(name).then(
         argument(name, type).executes { ctx ->
             val value = read(ctx, name)
-            updateServerMarker(ctx) { it.copy(marker = it.marker.change(value)) }
+            updateServerEntry(ctx) { it.copy(marker = it.marker.change(value)) }
         },
     )
 
@@ -56,18 +56,18 @@ object SetCommand {
         )
 
     private fun visibleToNode() = literal("visible_to")
-        .then(literal("all").executes { ctx -> updateServerMarker(ctx) { it.copy(visibleTo = null) } })
+        .then(literal("all").executes { ctx -> updateServerEntry(ctx) { it.copy(visibleTo = null) } })
         .then(
             argument("players", EntityArgument.players()).executes { ctx ->
                 val raw = ctx.rawArgument()
-                updateServerMarker(ctx, refresh = true) { it.copy(visibleTo = raw) }
+                updateServerEntry(ctx, refresh = true) { it.copy(visibleTo = raw) }
             },
         )
 
     private fun selectorNode() = literal("selector").then(
         argument("selector", EntityArgument.entities()).executes { ctx ->
             val raw = ctx.rawArgument()
-            updateServerMarker(ctx, refresh = true) { e ->
+            updateServerEntry(ctx, refresh = true) { e ->
                 if (e.marker.target !is MarkerTarget.Entities) throw CommandErrors.NOT_ENTITIES.create()
                 e.copy(entitySelector = raw)
             }

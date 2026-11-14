@@ -10,17 +10,17 @@ import net.minecraft.network.chat.Component
 
 object ManageCommand {
     fun removeNode(): LiteralArgumentBuilder<CommandSourceStack> = literal("remove").then(
-        idArgumentNode().executes {
-            if (!MarkerService.remove(it.source.server, it.id)) {
-                throw CommandErrors.NOT_FOUND.create(it.id)
+        idArgumentNode().executes { ctx ->
+            if (!MarkerService(ctx.source.server).remove(ctx.id)) {
+                throw CommandErrors.NOT_FOUND.create(ctx.id)
             }
-            it.source.sendSuccess({ Component.literal("Removed marker ${it.id}") }, true)
+            ctx.source.sendSuccess({ Component.literal("Removed marker ${ctx.id}") }, true)
             return@executes 1
         },
     )
 
     fun clearNode(): LiteralArgumentBuilder<CommandSourceStack> = literal("clear").executes {
-        MarkerService.clear(it.source.server)
+        MarkerService(it.source.server).clear()
         it.source.sendSuccess({ Component.literal("Cleared all markers") }, true)
         return@executes 1
     }
@@ -28,13 +28,6 @@ object ManageCommand {
     fun listNode(): LiteralArgumentBuilder<CommandSourceStack> = literal("list").executes {
         val entries = ServerMarkers.of(it.source.server).all
         val text = entries.joinToString { m ->
-            when (val t = m.marker.target) {
-                is MarkerTarget.Fixed -> "${m.id} (fixed x${t.positions.size})"
-
-                is MarkerTarget.Entities -> "${m.id} (entities x${t.entities.size}${m.entitySelector?.let { s ->
-                    " $s"
-                } ?: ""})"
-            }
         }
         it.source.sendSuccess({ Component.literal("Markers (${entries.size}): $text") }, false)
         return@executes entries.size
