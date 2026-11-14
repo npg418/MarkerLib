@@ -1,7 +1,6 @@
 package com.npg418.markerlib.marker.server.command
 
 import com.mojang.brigadier.CommandDispatcher
-import com.npg418.markerlib.config.ServerConfig
 import net.minecraft.commands.CommandSourceStack
 import net.minecraft.commands.Commands.literal
 
@@ -11,10 +10,10 @@ object MarkerCommand {
             literal("marker").requires { it.hasPermission(2) }
                 .then(CreateCommand.node())
                 .then(TargetCommand.node())
-                .then(SetCommand.node())
-                .then(ManageCommand.removeNode())
-                .then(ManageCommand.clearNode())
-                .then(ManageCommand.listNode()),
+                .then(ModifyCommand.node())
+                .then(ManageCommands.removeNode())
+                .then(ManageCommands.clearNode())
+                .then(ManageCommands.listNode()),
         )
     }
 }

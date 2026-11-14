@@ -7,6 +7,7 @@ import com.npg418.markerlib.marker.client.MarkerRenderer
 import com.npg418.markerlib.marker.server.MarkerService
 import com.npg418.markerlib.marker.server.command.MarkerCommand
 import net.minecraft.server.level.ServerPlayer
+import net.minecraft.world.level.Level
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent
 import net.minecraftforge.client.event.RegisterGuiOverlaysEvent
@@ -38,47 +39,52 @@ object CommonModEvents {
 
 @Mod.EventBusSubscriber(modid = MarkerLib.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 object CommonForgeEvents {
+    private fun service(level: Level): MarkerService? =
+        if (level.isClientSide) null else level.server?.let(MarkerService::of)
+
     @SubscribeEvent
     fun onServerTick(e: TickEvent.ServerTickEvent) {
-        if (e.phase == TickEvent.Phase.END) MarkerService.tick(e.server)
+        if (e.phase == TickEvent.Phase.END) MarkerService.of(e.server).tick()
     }
 
     @SubscribeEvent
-    fun onServerStarted(@Suppress("UNUSED_PARAMETER") e: ServerStartedEvent) {
-        MarkerService.markDirty()
+    fun onServerStarted(e: ServerStartedEvent) {
+        MarkerService.of(e.server).markDirty()
     }
 
     @SubscribeEvent
     fun onServerStopped(@Suppress("UNUSED_PARAMETER") e: ServerStoppedEvent) {
-        MarkerService.onServerStopped()
+        MarkerService.release()
     }
 
     @SubscribeEvent
     fun onEntityJoin(e: EntityJoinLevelEvent) {
-        if (!e.level.isClientSide) MarkerService.markDirty()
+        service(e.level)?.markDirty()
     }
 
     @SubscribeEvent
     fun onEntityLeave(e: EntityLeaveLevelEvent) {
-        if (!e.level.isClientSide) MarkerService.markDirty()
+        service(e.level)?.markDirty()
     }
 
     @SubscribeEvent
     fun onLivingDeath(e: LivingDeathEvent) {
-        if (!e.entity.level().isClientSide) MarkerService.markDirty()
+        service(e.entity.level())?.markDirty()
     }
 
     @SubscribeEvent
     fun onLogin(e: PlayerEvent.PlayerLoggedInEvent) {
         (e.entity as? ServerPlayer)?.let {
-            MarkerService.markDirty()
-            MarkerService.syncTo(it)
+            MarkerService.of(it.server).apply {
+                markDirty()
+                syncTo(it)
+            }
         }
     }
 
     @SubscribeEvent
     fun onLogout(e: PlayerEvent.PlayerLoggedOutEvent) {
-        if (!e.entity.level().isClientSide) MarkerService.markDirty()
+        service(e.entity.level())?.markDirty()
     }
 
     @SubscribeEvent

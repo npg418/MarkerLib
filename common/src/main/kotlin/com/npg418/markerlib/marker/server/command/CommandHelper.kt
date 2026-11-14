@@ -8,10 +8,8 @@ import com.mojang.brigadier.exceptions.DynamicCommandExceptionType
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType
 import com.mojang.brigadier.suggestion.SuggestionProvider
 import com.npg418.markerlib.marker.server.MarkerService
-import com.npg418.markerlib.marker.server.ServerMarker
-import com.npg418.markerlib.marker.server.ServerMarkers
+import com.npg418.markerlib.marker.server.ServerEntry
 import com.npg418.markerlib.marker.shared.Marker
-import com.npg418.markerlib.marker.shared.MarkerTarget
 import net.minecraft.commands.CommandSourceStack
 import net.minecraft.commands.Commands.argument
 import net.minecraft.commands.SharedSuggestionProvider
@@ -27,23 +25,25 @@ internal object CommandErrors {
     val NOT_FOUND = DynamicCommandExceptionType { Component.literal("Marker not found: $it") }
     val EXISTS = DynamicCommandExceptionType { Component.literal("Marker already exists: $it") }
     val BAD_COLOR = SimpleCommandExceptionType(Component.literal("Color must be RRGGBB (hex)"))
-    val NOT_FIXED = SimpleCommandExceptionType(Component.literal("Marker target is not fixed points"))
-    val NOT_ENTITIES = SimpleCommandExceptionType(Component.literal("Marker target is not an entity selector"))
     val NO_SUCH_POINT = SimpleCommandExceptionType(Component.literal("No matching point"))
-    val LAST_POINT =
-        SimpleCommandExceptionType(Component.literal("Cannot remove the last point; use 'remove <id>' instead"))
 }
 
-private const val MAX_POINTS = 16
+internal fun Ctx.rawArgument(name: String): String? = nodes.lastOrNull { it.node.name == name }?.range?.get(input)
 
-internal fun positionsNode(
+internal val idSuggestions = SuggestionProvider<CommandSourceStack> { ctx, builder ->
+    SharedSuggestionProvider.suggest(MarkerService.of(ctx.source.server).all.map { it.id }, builder)
+}
+
+internal fun idArgumentNode() = argument("id", word())
+internal val Ctx.id get() = getString(this, "id")
+
+private const val MAX_POINTS = 16
+internal fun positionsAugmentNode(
     index: Int = 1,
     suggestions: ((Ctx, Int) -> Collection<String>)? = null,
-    action: (Ctx, List<Vec3>) -> Int,
+    action: ((Ctx, Int) -> Int),
 ): RequiredArgumentBuilder<CommandSourceStack, Coordinates> {
-    val node = argument("pos$index", vec3()).executes { ctx ->
-        action(ctx, (1..index).map { getVec3(ctx, "pos$it") })
-    }
+    val node = argument("pos$index", vec3()).executes { action(it, index) }
     if (suggestions != null) {
         node.suggests { ctx, builder ->
             SharedSuggestionProvider.suggest(
@@ -52,38 +52,29 @@ internal fun positionsNode(
             )
         }
     }
-    if (index < MAX_POINTS) node.then(positionsNode(index + 1, suggestions, action))
+    if (index < MAX_POINTS) node.then(positionsAugmentNode(index + 1, suggestions, action))
     return node
 }
 
-internal fun Ctx.rawArgument(): String = this.nodes.last().range.get(this.input)
+internal fun Ctx.positions(index: Int): List<Vec3> = (1..index).map { getVec3(this, "pos$it") }
 
-private val idSuggestions = SuggestionProvider<CommandSourceStack> { ctx, builder ->
-    SharedSuggestionProvider.suggest(ServerMarkers.of(ctx.source.server).all.map { it.id }, builder)
-}
-internal fun idArgumentNode() = argument("id", word()).suggests(idSuggestions)
-
-internal val Ctx.id get() = getString(this, "id")
-
-internal fun updateServerMarker(ctx: Ctx, refresh: Boolean = false, transform: (ServerMarker) -> ServerMarker): Int {
+internal fun updateServerEntry(ctx: Ctx, refresh: Boolean = false, transform: (ServerEntry) -> ServerEntry): Int {
     val id = ctx.id
     val server = ctx.source.server
-    val marker = ServerMarkers.of(server)[id] ?: throw CommandErrors.NOT_FOUND.create(id)
+    val service = MarkerService.of(server)
+    val marker = service[id] ?: throw CommandErrors.NOT_FOUND.create(id)
     val transformed = transform(marker)
-    MarkerService.put(server, transformed)
+    service.put(transformed)
     if (refresh) {
-        MarkerService.refreshVisibleTo(server, transformed)
-        MarkerService.refreshEntities(server, transformed)
+        service.refreshVisibleTo(transformed)
+        service.refreshEntities(transformed)
     }
     ctx.source.sendSuccess({ Component.literal("Updated marker $id") }, true)
     return 1
 }
 
-internal fun updateMarker(ctx: Ctx, transform: (Marker) -> Marker) =
-    updateServerMarker(ctx) { it.copy(marker = transform(it.marker)) }
-
-internal fun updateTarget(ctx: Ctx, transform: (MarkerTarget) -> MarkerTarget) =
-    updateMarker(ctx) { it.copy(target = transform(it.target)) }
+internal fun updateMarker(ctx: Ctx, transform: Marker.() -> Marker) =
+    updateServerEntry(ctx) { it.copy(marker = transform(it.marker)) }
 
 private const val POINT_EPSILON = 0.001
 internal fun samePoint(a: Vec3, b: Vec3): Boolean = a.distanceToSqr(b) <= POINT_EPSILON * POINT_EPSILON

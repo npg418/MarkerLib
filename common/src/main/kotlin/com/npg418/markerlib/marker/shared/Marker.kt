@@ -1,9 +1,7 @@
 package com.npg418.markerlib.marker.shared
 
-import net.minecraft.nbt.CompoundTag
-import net.minecraft.nbt.ListTag
-import net.minecraft.nbt.NbtUtils
-import net.minecraft.nbt.Tag
+import com.mojang.serialization.Codec
+import com.mojang.serialization.codecs.RecordCodecBuilder
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.phys.Vec3
@@ -11,116 +9,88 @@ import java.util.*
 
 data class Marker(
     val id: String,
-    val target: MarkerTarget,
-    val icon: ResourceLocation = DEFAULT_ICON,
-    val arrowIcon: ResourceLocation? = DEFAULT_ARROW,
-    val size: Float = 1f,
+    val positions: List<Vec3> = emptyList(),
+    val entities: Set<UUID> = emptySet(),
+    val icon: MarkerIcon = MarkerIcon(),
     val color: Int = 0xFF3030,
     val blend: Float = 1f,
     val label: String? = null,
     val showDistance: Boolean = true,
 ) {
-    companion object {
-        val DEFAULT_ICON = ResourceLocation("markerlib", "textures/gui/marker.png")
-        val DEFAULT_ARROW = ResourceLocation("markerlib", "textures/gui/arrow.png")
-        const val RGB_MASK = 0xFFFFFF
-
-        fun read(buf: FriendlyByteBuf) = Marker(
-            id = buf.readUtf(),
-            target = MarkerTarget.read(buf),
-            icon = buf.readResourceLocation(),
-            arrowIcon = buf.readNullable { it.readResourceLocation() },
-            size = buf.readFloat(),
-            color = buf.readInt() and RGB_MASK,
-            blend = buf.readFloat(),
-            label = buf.readNullable { it.readUtf() },
-            showDistance = buf.readBoolean(),
-        )
-
-        fun fromTag(tag: CompoundTag) = Marker(
-            id = tag.getString("id"),
-            target = MarkerTarget.fromTag(tag.getCompound("target")),
-            icon = ResourceLocation(tag.getString("icon")),
-            arrowIcon = tag.getNullable("arrow") { ResourceLocation(getString(it)) },
-            size = tag.getNullable("size", CompoundTag::getFloat) ?: 1f,
-            color = tag.getInt("color") and RGB_MASK,
-            blend = tag.getFloat("blend"),
-            label = tag.getNullable("label", CompoundTag::getString),
-            showDistance = tag.getBoolean("showDistance"),
-        )
-    }
-
     fun write(buf: FriendlyByteBuf) {
         buf.writeUtf(id)
-        target.write(buf)
-        buf.writeResourceLocation(icon)
-        buf.writeNullable(arrowIcon) { b, r -> b.writeResourceLocation(r) }
-        buf.writeFloat(size)
+        buf.writeCollection(positions) { b, p -> b.writeVec3(p) }
+        buf.writeCollection(entities) { b, e -> b.writeUUID(e) }
+        icon.write(buf)
         buf.writeInt(color)
         buf.writeFloat(blend)
         buf.writeNullable(label) { b, s -> b.writeUtf(s) }
         buf.writeBoolean(showDistance)
     }
 
-    fun toTag() = CompoundTag().apply {
-        putString("id", this@Marker.id)
-        put("target", target.toTag())
-        putString("icon", icon.toString())
-        putNullable("arrow", arrowIcon) { k, v -> putString(k, v.toString()) }
-        putFloat("size", size)
-        putInt("color", color)
-        putFloat("blend", blend)
-        putNullable("label", label, CompoundTag::putString)
-        putBoolean("showDistance", showDistance)
+    companion object {
+        const val RGB_MASK = 0xFFFFFF
+
+        val CODEC: Codec<Marker> = RecordCodecBuilder.create { i ->
+            i.group(
+                Codec.STRING.fieldOf("id").forGetter { it.id },
+                Vec3.CODEC.listOf().fieldOf("positions").forGetter { it.positions },
+                MarkerIcon.CODEC.fieldOf("icon").forGetter { it.icon },
+                Codec.intRange(0x000000, 0xFFFFFF).fieldOf("color").forGetter { it.color },
+                Codec.floatRange(0f, 1f).fieldOf("blend").forGetter { it.blend },
+                Codec.STRING.nullableFieldOf("label").forGetter { it.label },
+                Codec.BOOL.fieldOf("showDistance").forGetter { it.showDistance },
+            ).apply(i) { id, positions, icon, color, blend, label, showDistance ->
+                Marker(id, positions, emptySet(), icon, color, blend, label, showDistance)
+            }
+        }
+
+        fun read(buf: FriendlyByteBuf) = Marker(
+            id = buf.readUtf(),
+            positions = buf.readList { it.readVec3() },
+            entities = buf.readCollection(::HashSet) { it.readUUID() },
+            icon = MarkerIcon.read(buf),
+            color = buf.readInt() and RGB_MASK,
+            blend = buf.readFloat(),
+            label = buf.readNullable { it.readUtf() },
+            showDistance = buf.readBoolean(),
+        )
     }
 }
 
-sealed interface MarkerTarget {
+data class MarkerIcon(
+    val iconTexture: ResourceLocation = DEFAULT_ICON,
+    val arrowTexture: ResourceLocation? = DEFAULT_ARROW,
+    val size: Float = 1f,
+    val entityIconOffset: Double = 0.5,
+) {
+    fun write(buf: FriendlyByteBuf) {
+        buf.writeResourceLocation(iconTexture)
+        buf.writeNullable(arrowTexture) { b, a -> b.writeResourceLocation(a) }
+        buf.writeFloat(size)
+        buf.writeDouble(entityIconOffset)
+    }
+
     companion object {
-        fun read(buf: FriendlyByteBuf): MarkerTarget = when (buf.readByte().toInt()) {
-            0 -> Fixed(buf.readList { it.readVec3() })
-            1 -> Entities(buf.readCollection(::HashSet) { it.readUUID() }, buf.readDouble())
-            else -> error("unknown target type")
+        val DEFAULT_ICON = ResourceLocation("markerlib", "textures/gui/marker.png")
+        val DEFAULT_ARROW = ResourceLocation("markerlib", "textures/gui/arrow.png")
+
+        val CODEC: Codec<MarkerIcon> = RecordCodecBuilder.create { i ->
+            i.group(
+                ResourceLocation.CODEC.fieldOf("icon").forGetter { it.iconTexture },
+                ResourceLocation.CODEC.nullableFieldOf("arrowIcon").forGetter { it.arrowTexture },
+                Codec.FLOAT.fieldOf("size").forGetter { it.size },
+                Codec.DOUBLE.fieldOf("entityIconOffset").forGetter { it.entityIconOffset },
+            ).apply(i) { icon, arrowIcon, size, entityIconOffset ->
+                MarkerIcon(icon, arrowIcon, size, entityIconOffset)
+            }
         }
 
-        fun fromTag(tag: CompoundTag): MarkerTarget = when (tag.getString("type")) {
-            "fixed" -> Fixed(tag.getList("positions", Tag.TAG_COMPOUND.toInt()).map { (it as CompoundTag).toVec3() })
-
-            "entity" -> Entities(
-                tag.getList("entities", Tag.TAG_INT_ARRAY.toInt()).map { NbtUtils.loadUUID(it) }.toSet(),
-                tag.getDouble("yOffset"),
-            )
-
-            else -> error("unknown target type")
-        }
-    }
-
-    fun write(buf: FriendlyByteBuf)
-    fun toTag(): CompoundTag
-
-    data class Fixed(val positions: List<Vec3>) : MarkerTarget {
-        override fun write(buf: FriendlyByteBuf) {
-            buf.writeByte(0)
-            buf.writeCollection(positions) { b, v -> b.writeVec3(v) }
-        }
-
-        override fun toTag() = CompoundTag().apply {
-            putString("type", "fixed")
-            put("positions", ListTag().apply { positions.forEach { add(it.toTag()) } })
-        }
-    }
-
-    data class Entities(val entities: Set<UUID>, val yOffset: Double = 0.5) : MarkerTarget {
-        override fun write(buf: FriendlyByteBuf) {
-            buf.writeByte(1)
-            buf.writeCollection(entities) { b, u -> b.writeUUID(u) }
-            buf.writeDouble(yOffset)
-        }
-
-        override fun toTag() = CompoundTag().apply {
-            putString("type", "entity")
-            put("entities", ListTag().apply { entities.forEach { add(NbtUtils.createUUID(it)) } })
-            putDouble("yOffset", yOffset)
-        }
+        fun read(buf: FriendlyByteBuf) = MarkerIcon(
+            iconTexture = buf.readResourceLocation(),
+            arrowTexture = buf.readNullable { it.readResourceLocation() },
+            size = buf.readFloat(),
+            entityIconOffset = buf.readDouble(),
+        )
     }
 }
