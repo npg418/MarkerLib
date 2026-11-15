@@ -2,7 +2,7 @@ package com.npg418.markerlib.marker.client
 
 import com.mojang.math.Axis
 import com.npg418.markerlib.config.ClientConfig
-import com.npg418.markerlib.marker.shared.Marker
+import com.npg418.markerlib.marker.common.Marker
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.Font
 import net.minecraft.client.gui.GuiGraphics

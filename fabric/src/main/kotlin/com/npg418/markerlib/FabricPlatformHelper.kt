@@ -1,6 +1,6 @@
 package com.npg418.markerlib
 
-import com.npg418.markerlib.marker.shared.MarkerPacket
+import com.npg418.markerlib.marker.common.MarkerPacket
 import net.fabricmc.loader.api.FabricLoader
 import net.minecraft.server.level.ServerPlayer
 

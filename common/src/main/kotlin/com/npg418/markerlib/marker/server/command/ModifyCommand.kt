@@ -7,7 +7,7 @@ import com.mojang.brigadier.arguments.FloatArgumentType.floatArg
 import com.mojang.brigadier.arguments.StringArgumentType.greedyString
 import com.mojang.brigadier.arguments.StringArgumentType.word
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
-import com.npg418.markerlib.marker.shared.Marker
+import com.npg418.markerlib.marker.common.Marker
 import net.minecraft.commands.CommandSourceStack
 import net.minecraft.commands.Commands.argument
 import net.minecraft.commands.Commands.literal

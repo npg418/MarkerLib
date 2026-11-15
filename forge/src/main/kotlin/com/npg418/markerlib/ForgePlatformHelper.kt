@@ -1,6 +1,6 @@
 package com.npg418.markerlib
 
-import com.npg418.markerlib.marker.shared.MarkerPacket
+import com.npg418.markerlib.marker.common.MarkerPacket
 import com.npg418.markerlib.network.MarkerNetwork
 import net.minecraft.server.level.ServerPlayer
 import net.minecraftforge.fml.ModList

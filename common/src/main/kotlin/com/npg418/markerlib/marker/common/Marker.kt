@@ -1,4 +1,4 @@
-package com.npg418.markerlib.marker.shared
+package com.npg418.markerlib.marker.common
 
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
@@ -6,6 +6,7 @@ import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.phys.Vec3
 import java.util.*
+import kotlin.jvm.optionals.getOrNull
 
 data class Marker(
     val id: String,
@@ -38,10 +39,10 @@ data class Marker(
                 MarkerIcon.CODEC.fieldOf("icon").forGetter { it.icon },
                 Codec.intRange(0x000000, 0xFFFFFF).fieldOf("color").forGetter { it.color },
                 Codec.floatRange(0f, 1f).fieldOf("blend").forGetter { it.blend },
-                Codec.STRING.nullableFieldOf("label").forGetter { it.label },
+                Codec.STRING.optionalFieldOf("label").forGetter { Optional.ofNullable(it.label) },
                 Codec.BOOL.fieldOf("showDistance").forGetter { it.showDistance },
             ).apply(i) { id, positions, icon, color, blend, label, showDistance ->
-                Marker(id, positions, emptySet(), icon, color, blend, label, showDistance)
+                Marker(id, positions, emptySet(), icon, color, blend, label.getOrNull(), showDistance)
             }
         }
 
@@ -78,11 +79,11 @@ data class MarkerIcon(
         val CODEC: Codec<MarkerIcon> = RecordCodecBuilder.create { i ->
             i.group(
                 ResourceLocation.CODEC.fieldOf("icon").forGetter { it.iconTexture },
-                ResourceLocation.CODEC.nullableFieldOf("arrowIcon").forGetter { it.arrowTexture },
+                ResourceLocation.CODEC.optionalFieldOf("arrowIcon").forGetter { Optional.ofNullable(it.arrowTexture) },
                 Codec.FLOAT.fieldOf("size").forGetter { it.size },
                 Codec.DOUBLE.fieldOf("entityIconOffset").forGetter { it.entityIconOffset },
             ).apply(i) { icon, arrowIcon, size, entityIconOffset ->
-                MarkerIcon(icon, arrowIcon, size, entityIconOffset)
+                MarkerIcon(icon, arrowIcon.getOrNull(), size, entityIconOffset)
             }
         }
 

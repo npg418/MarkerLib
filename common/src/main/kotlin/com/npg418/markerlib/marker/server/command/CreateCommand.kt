@@ -1,9 +1,9 @@
 package com.npg418.markerlib.marker.server.command
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
+import com.npg418.markerlib.marker.common.Marker
 import com.npg418.markerlib.marker.server.MarkerService
 import com.npg418.markerlib.marker.server.ServerEntry
-import com.npg418.markerlib.marker.shared.Marker
 import net.minecraft.commands.CommandSourceStack
 import net.minecraft.commands.Commands.literal
 import net.minecraft.network.chat.Component

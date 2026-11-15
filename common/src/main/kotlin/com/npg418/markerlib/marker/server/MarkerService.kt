@@ -2,9 +2,9 @@ package com.npg418.markerlib.marker.server
 
 import com.npg418.markerlib.Platform
 import com.npg418.markerlib.config.ServerConfig
-import com.npg418.markerlib.marker.shared.AddPacket
-import com.npg418.markerlib.marker.shared.RemovePacket
-import com.npg418.markerlib.marker.shared.SyncPacket
+import com.npg418.markerlib.marker.common.AddPacket
+import com.npg418.markerlib.marker.common.RemovePacket
+import com.npg418.markerlib.marker.common.SyncPacket
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.level.ServerPlayer
 import java.util.*
@@ -33,7 +33,8 @@ class MarkerService private constructor(val server: MinecraftServer) {
 
     fun syncTo(player: ServerPlayer) {
         playerResolver.invalidate()
-        val visible = markers.all.filter { it.isVisibleTo(player) }.map { it.marker }
+        entityResolver.invalidate()
+        val visible = markers.all.filter { it.isVisibleTo(player) }.map { it.resolveEntities().marker }
         Platform.sendPacket(player, SyncPacket(visible))
     }
 
@@ -98,9 +99,8 @@ class MarkerService private constructor(val server: MinecraftServer) {
     }
 
     fun refreshEntities(entry: ServerEntry) {
-        val selector = entry.entitySelector ?: return
-        val found = entityResolver.resolve(selector) ?: return
-        val updated = entry.copy(marker = entry.marker.copy(entities = found))
+        val updated = entry.resolveEntities()
+        if (updated.marker.entities == entry.marker.entities) return
         markers.put(updated)
         server.playerList.players.forEach {
             if (updated.isVisibleTo(it)) Platform.sendPacket(it, AddPacket(updated.marker))

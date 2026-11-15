@@ -1,6 +1,6 @@
 package com.npg418.markerlib.marker.client
 
-import com.npg418.markerlib.marker.shared.Marker
+import com.npg418.markerlib.marker.common.Marker
 import net.minecraft.client.Minecraft
 import net.minecraft.client.multiplayer.ClientLevel
 import net.minecraft.world.entity.Entity
