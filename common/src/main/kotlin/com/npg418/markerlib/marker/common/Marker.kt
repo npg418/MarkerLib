@@ -18,6 +18,10 @@ data class Marker(
     val label: String? = null,
     val showDistance: Boolean = true,
 ) {
+    init {
+        require(blend in 0f..1f) { "blend must be in 0..1 but was $blend" }
+    }
+
     fun write(buf: FriendlyByteBuf) {
         buf.writeUtf(id)
         buf.writeCollection(positions) { b, p -> b.writeVec3(p) }
@@ -65,6 +69,10 @@ data class MarkerIcon(
     val size: Float = 1f,
     val entityIconOffset: Double = 0.5,
 ) {
+    init {
+        require(size in MIN_SIZE..MAX_SIZE) { "size must be in $MIN_SIZE..$MAX_SIZE but was $size" }
+    }
+
     fun write(buf: FriendlyByteBuf) {
         buf.writeResourceLocation(iconTexture)
         buf.writeNullable(arrowTexture) { b, a -> b.writeResourceLocation(a) }
@@ -76,11 +84,14 @@ data class MarkerIcon(
         val DEFAULT_ICON = ResourceLocation("markerlib", "textures/gui/marker.png")
         val DEFAULT_ARROW = ResourceLocation("markerlib", "textures/gui/arrow.png")
 
+        const val MIN_SIZE = 0.25f
+        const val MAX_SIZE = 4f
+
         val CODEC: Codec<MarkerIcon> = RecordCodecBuilder.create { i ->
             i.group(
                 ResourceLocation.CODEC.fieldOf("icon").forGetter { it.iconTexture },
                 ResourceLocation.CODEC.optionalFieldOf("arrowIcon").forGetter { Optional.ofNullable(it.arrowTexture) },
-                Codec.FLOAT.fieldOf("size").forGetter { it.size },
+                Codec.floatRange(MIN_SIZE, MAX_SIZE).fieldOf("size").forGetter { it.size },
                 Codec.DOUBLE.fieldOf("entityIconOffset").forGetter { it.entityIconOffset },
             ).apply(i) { icon, arrowIcon, size, entityIconOffset ->
                 MarkerIcon(icon, arrowIcon.getOrNull(), size, entityIconOffset)

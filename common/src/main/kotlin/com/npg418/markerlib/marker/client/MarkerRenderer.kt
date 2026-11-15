@@ -121,7 +121,7 @@ object MarkerRenderer {
     }
 
     private fun blended(m: Marker): Int {
-        fun mix(c: Int): Int = (255f + (c - 255f) * m.blend.coerceIn(0f, 1f)).roundToInt().coerceIn(0, 255)
+        fun mix(c: Int): Int = (255f + (c - 255f) * m.blend).roundToInt().coerceIn(0, 255)
 
         val r = mix(m.color shr 16 and 0xFF)
         val g = mix(m.color shr 8 and 0xFF)

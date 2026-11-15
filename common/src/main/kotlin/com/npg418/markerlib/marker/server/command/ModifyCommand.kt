@@ -8,6 +8,7 @@ import com.mojang.brigadier.arguments.StringArgumentType.greedyString
 import com.mojang.brigadier.arguments.StringArgumentType.word
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
 import com.npg418.markerlib.marker.common.Marker
+import com.npg418.markerlib.marker.common.MarkerIcon
 import net.minecraft.commands.CommandSourceStack
 import net.minecraft.commands.Commands.argument
 import net.minecraft.commands.Commands.literal
@@ -34,6 +35,12 @@ object ModifyCommand {
                         updateMarker(ctx) { copy(icon = icon.copy(arrowTexture = null)) }
                     },
                 ),
+            ).then(
+                property(
+                    "size",
+                    floatArg(MarkerIcon.MIN_SIZE, MarkerIcon.MAX_SIZE),
+                    FloatArgumentType::getFloat,
+                ) { copy(icon = icon.copy(size = it)) },
             ).then(
                 property("entity_offset", doubleArg(), DoubleArgumentType::getDouble) {
                     copy(icon = icon.copy(entityIconOffset = it))
