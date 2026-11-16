@@ -8,7 +8,7 @@ import net.minecraft.server.MinecraftServer
 import net.minecraft.world.level.saveddata.SavedData
 
 internal class ServerMarkers private constructor() : SavedData() {
-    private val entries = LinkedHashMap<String, ServerEntry>()
+    private val entries = mutableMapOf<String, ServerEntry>()
 
     val all: Collection<ServerEntry> get() = entries.values
 

@@ -14,7 +14,18 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 
 object MarkerRenderer {
+    private class RenderingItem(
+        val marker: Marker,
+        val x: Float,
+        val y: Float,
+        val dist: Double,
+        val edge: Boolean,
+        val angle: Float,
+    )
+
     private val viewProj = Matrix4f()
+
+    private const val EPS = 1e-6f
 
     fun captureMatrices(projection: Matrix4f, view: Matrix4f) {
         viewProj.set(projection).mul(view)
@@ -28,111 +39,73 @@ object MarkerRenderer {
         val cam = mc.gameRenderer.mainCamera.position
         val w = g.guiWidth().toFloat()
         val h = g.guiHeight().toFloat()
+        val margin = ClientConfig.Rendering.edgeMargin
 
+        val items = mutableListOf<RenderingItem>()
         val ctx = ResolveContext(level, markers)
         for (marker in markers) {
-            val positions = marker.positions + ctx.getPositions(marker, partialTick)
-            for (pos in positions) {
+            for (pos in marker.positions + ctx.getEntityPositions(marker, partialTick)) {
+                val v = Vector4f((pos.x - cam.x).toFloat(), (pos.y - cam.y).toFloat(), (pos.z - cam.z).toFloat(), 1f)
+                    .mul(viewProj)
+                val behind = v.w <= 0f
+                val iw = 1f / (if (abs(v.w) < EPS) EPS else v.w)
+                val flip = if (behind) -1f else 1f
+                val sx = (v.x * iw * flip * 0.5f + 0.5f) * w
+                val sy = (0.5f - v.y * iw * flip * 0.5f) * h
                 val dist = cam.distanceTo(pos)
 
-                val v = Vector4f(
-                    (pos.x - cam.x).toFloat(),
-                    (pos.y - cam.y).toFloat(),
-                    (pos.z - cam.z).toFloat(),
-                    1f,
-                ).mul(viewProj)
-
-                val behind = v.w <= 0f
-                var nx = v.x / v.w
-                var ny = v.y / v.w
-                if (behind) {
-                    nx = -nx
-                    ny = -ny
-                }
-
-                val sx = (nx * 0.5f + 0.5f) * w
-                val sy = (0.5f - ny * 0.5f) * h
-
-                val margin = ClientConfig.Rendering.edgeMargin
-                val onScreen =
-                    !behind &&
-                        (marker.icon.arrowTexture == null || (sx in margin..(w - margin) && sy in margin..(h - margin)))
-                if (onScreen) {
-                    drawIcon(g, marker, sx, sy, dist, mc.font)
-                } else {
-                    drawEdge(
-                        g,
-                        marker,
-                        sx,
-                        sy,
-                        w,
-                        h,
-                        dist,
-                        mc.font,
-                    )
+                val arrow = marker.icon.arrowTexture
+                if (!behind && (arrow == null || (sx in margin..(w - margin) && sy in margin..(h - margin)))) {
+                    items += RenderingItem(marker, sx, sy, dist, false, 0f)
+                } else if (arrow != null) {
+                    val dx = sx - w / 2
+                    var dy = sy - h / 2
+                    if (abs(dx) < EPS && abs(dy) < EPS) dy = -1f
+                    val k = min((w / 2 - margin) / abs(dx), (h / 2 - margin) / abs(dy))
+                    items += RenderingItem(marker, w / 2 + dx * k, h / 2 + dy * k, dist, true, atan2(dy, dx))
                 }
             }
         }
+
+        items.sortWith(compareBy<RenderingItem> { !it.edge }.thenByDescending { it.dist })
+        items.forEach { draw(g, it, mc.font) }
     }
 
-    private fun drawIcon(g: GuiGraphics, m: Marker, x: Float, y: Float, dist: Double, font: Font) {
+    private fun draw(g: GuiGraphics, item: RenderingItem, font: Font) {
+        val m = item.marker
         val s = (ClientConfig.Rendering.baseIconSize * m.icon.size).roundToInt().coerceAtLeast(1)
+        val scale = if (item.edge) 1f else distanceScale(item.dist)
+
+        fun mix(c: Int) = (255f + (c - 255f) * m.blend).roundToInt().coerceIn(0, 255)
+        val red = mix(m.color shr 16 and 0xFF)
+        val green = mix(m.color shr 8 and 0xFF)
+        val blue = mix(m.color and 0xFF)
+
+        val iconH = s * scale
+        val ts = ClientConfig.Rendering.textScale * scale
+        val textH = if (m.showDistance) font.lineHeight * ts + 2f else 0f
+        val lift = if (item.edge) 0f else iconH / 2f + textH
+
         g.pose().pushPose()
-        g.pose().translate(x, y, 0f)
+        g.pose().translate(item.x, item.y - lift, 0f)
         if (m.showDistance) {
-            g.drawCenteredString(font, "${dist.roundToInt()}m", 0, s + 2, blended(m))
+            val argb = (0xFF shl 24) or (red shl 16) or (green shl 8) or blue
+            g.pose().pushPose()
+            g.pose().translate(0f, iconH / 2f + 2f, 0f)
+            g.pose().scale(ts, ts, 1f)
+            g.drawCenteredString(font, "${item.dist.roundToInt()}m", 0, 0, argb)
+            g.pose().popPose()
         }
-        tint(g, m) {
-            g.blit(m.icon.iconTexture, -s / 2, -s / 2, s, s, 0f, 0f, 1, 1, 1, 1)
-        }
-        g.pose().popPose()
-    }
-
-    private fun drawEdge(
-        g: GuiGraphics,
-        m: Marker,
-        sx: Float,
-        sy: Float,
-        w: Float,
-        h: Float,
-        dist: Double,
-        font: Font,
-    ) {
-        if (m.icon.arrowTexture == null) return
-        val cx = w / 2
-        val cy = h / 2
-        val dx = sx - cx
-        val dy = sy - cy
-        val k = min(
-            (cx - ClientConfig.Rendering.edgeMargin) / abs(dx),
-            (cy - ClientConfig.Rendering.edgeMargin) / abs(dy),
-        )
-        val s = (ClientConfig.Rendering.baseIconSize * m.icon.size).roundToInt().coerceAtLeast(1)
-        g.pose().pushPose()
-        g.pose().translate(cx + dx * k, cy + dy * k, 0f)
-        if (m.showDistance) {
-            g.drawCenteredString(font, "${dist.roundToInt()}m", 0, s + 2, blended(m))
-        }
-        tint(g, m) {
-            g.pose().mulPose(Axis.ZP.rotation(atan2(dy, dx)))
-            g.blit(m.icon.arrowTexture, -s / 2, -s / 2, s, s, 0f, 0f, 1, 1, 1, 1)
-        }
-        g.pose().popPose()
-    }
-
-    private fun blended(m: Marker): Int {
-        fun mix(c: Int): Int = (255f + (c - 255f) * m.blend).roundToInt().coerceIn(0, 255)
-
-        val r = mix(m.color shr 16 and 0xFF)
-        val g = mix(m.color shr 8 and 0xFF)
-        val b = mix(m.color and 0xFF)
-        return (0xFF shl 24) or (r shl 16) or (g shl 8) or b
-    }
-
-    private fun tint(g: GuiGraphics, m: Marker, block: () -> Unit) {
-        val argb = blended(m)
-        g.setColor((argb shr 16 and 0xFF) / 255f, (argb shr 8 and 0xFF) / 255f, (argb and 0xFF) / 255f, 1f)
-        block()
+        g.pose().translate(0f, 0f, 0.5f)
+        g.pose().scale(scale, scale, 1f)
+        if (item.edge) g.pose().mulPose(Axis.ZP.rotation(item.angle))
+        g.setColor(red / 255f, green / 255f, blue / 255f, 1f)
+        g.blit(if (item.edge) m.icon.arrowTexture!! else m.icon.iconTexture, -s / 2, -s / 2, s, s, 0f, 0f, 1, 1, 1, 1)
         g.setColor(1f, 1f, 1f, 1f)
+        g.pose().popPose()
+    }
+
+    private fun distanceScale(dist: Double): Float = with(ClientConfig.Rendering) {
+        (scaleRefDistance / dist.coerceAtLeast(0.1)).toFloat().coerceIn(minScale, maxScale)
     }
 }

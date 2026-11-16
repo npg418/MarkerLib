@@ -15,7 +15,7 @@ class MarkerService private constructor(val server: MinecraftServer) {
     private val entityResolver = CachedEntityResolver(server, false)
     private val playerResolver = CachedEntityResolver(server, true)
 
-    private val lastSent = HashMap<String, Set<UUID>>()
+    private val lastSent = mutableMapOf<String, Set<UUID>>()
 
     private var dirty = false
     private var lastRefresh = 0

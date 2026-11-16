@@ -9,5 +9,10 @@ object ClientConfig : ConfigSpec(ConfigType.CLIENT) {
         val baseIconSize by entry(8) ranged 0..Int.MAX_VALUE
 
         val edgeMargin by entry(20f) ranged 0f..100f
+
+        val scaleRefDistance by entry(16f) ranged 1f..1024f
+        val minScale by entry(0.4f) ranged 0.1f..1f
+        val maxScale by entry(2f) ranged 1f..8f
+        val textScale by entry(0.6f) ranged 0.25f..2f
     }
 }

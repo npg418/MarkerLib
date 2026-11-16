@@ -7,8 +7,8 @@ import net.minecraft.server.MinecraftServer
 import java.util.*
 
 class CachedEntityResolver internal constructor(val server: MinecraftServer, val playerOnly: Boolean) {
-    private val parsed = HashMap<String, EntitySelector>()
-    private val resolved = HashMap<String, Set<UUID>?>()
+    private val parsed = mutableMapOf<String, EntitySelector>()
+    private val resolved = mutableMapOf<String, Set<UUID>?>()
 
     fun invalidate() = resolved.clear()
 
