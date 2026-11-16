@@ -19,6 +19,6 @@ class ResolveContext(level: ClientLevel, markers: Collection<Marker>) {
         }
     }
 
-    fun getPositions(marker: Marker, partialTick: Float) = marker.entities.mapNotNull(entities::get)
+    fun getEntityPositions(marker: Marker, partialTick: Float) = marker.entities.mapNotNull(entities::get)
         .map { it.getPosition(partialTick).add(0.0, it.bbHeight + marker.icon.entityIconOffset, 0.0) }
 }

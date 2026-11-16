@@ -3,7 +3,7 @@ package com.npg418.markerlib.marker.client
 import com.npg418.markerlib.marker.common.Marker
 
 object ClientMarkers {
-    private val markers = LinkedHashMap<String, Marker>()
+    private val markers = mutableMapOf<String, Marker>()
 
     val all get() = markers.values
 
