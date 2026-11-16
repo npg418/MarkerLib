@@ -21,6 +21,7 @@ class MarkerTest {
         val buf = FriendlyByteBuf(Unpooled.buffer())
         SAMPLE.write(buf)
         assertEquals(SAMPLE, Marker.read(buf))
+        assertEquals(0, buf.readableBytes())
     }
 
     companion object {

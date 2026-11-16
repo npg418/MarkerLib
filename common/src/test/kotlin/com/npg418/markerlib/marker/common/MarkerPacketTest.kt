@@ -32,6 +32,7 @@ class MarkerPacketTest {
         val buf = FriendlyByteBuf(Unpooled.buffer())
         packet.encode(buf)
         assertEquals(packet, decode(buf))
+        assertEquals(0, buf.readableBytes())
     }
 
     companion object {
