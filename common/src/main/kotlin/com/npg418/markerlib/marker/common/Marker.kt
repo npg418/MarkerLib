@@ -34,8 +34,6 @@ data class Marker(
     }
 
     companion object {
-        const val RGB_MASK = 0xFFFFFF
-
         val CODEC: Codec<Marker> = RecordCodecBuilder.create { i ->
             i.group(
                 Codec.STRING.fieldOf("id").forGetter { it.id },
@@ -55,7 +53,7 @@ data class Marker(
             positions = buf.readList { it.readVec3() },
             entities = buf.readCollection(::HashSet) { it.readUUID() },
             icon = MarkerIcon.read(buf),
-            color = buf.readInt() and RGB_MASK,
+            color = buf.readInt() and 0xFFFFFF,
             blend = buf.readFloat(),
             label = buf.readNullable { it.readUtf() },
             showDistance = buf.readBoolean(),
@@ -67,7 +65,7 @@ data class MarkerIcon(
     val iconTexture: ResourceLocation = DEFAULT_ICON,
     val arrowTexture: ResourceLocation? = DEFAULT_ARROW,
     val size: Float = 1f,
-    val entityIconOffset: Double = 0.5,
+    val entityIconOffset: Double = 0.2,
 ) {
     init {
         require(size in MIN_SIZE..MAX_SIZE) { "size must be in $MIN_SIZE..$MAX_SIZE but was $size" }
