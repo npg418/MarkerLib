@@ -31,7 +31,7 @@ class MarkerTest {
             entities = setOf(UUID.randomUUID()),
             icon = MarkerIcon(size = 1.5f, entityIconOffset = 1.0),
             color = 0x00FF00,
-            label = "base"
+            label = "base",
         )
     }
 }

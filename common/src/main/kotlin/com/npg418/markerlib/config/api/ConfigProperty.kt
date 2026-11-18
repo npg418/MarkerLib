@@ -17,8 +17,11 @@ sealed class ConfigProperty<T : Any>(val default: T) {
 
     var getter: () -> T = { localValue }
     var setter: (T) -> Unit = {
-        if (isValid(it)) localValue = it
-        else LOGGER.error("Validation for config value {} failed. The value was not set.", it)
+        if (isValid(it)) {
+            localValue = it
+        } else {
+            LOGGER.error("Validation for config value {} failed. The value was not set.", it)
+        }
     }
 
     operator fun getValue(thisRef: Any?, property: KProperty<*>): T = getter()
@@ -28,7 +31,9 @@ sealed class ConfigProperty<T : Any>(val default: T) {
 }
 
 open class NormalConfigProperty<T : Any> @PublishedApi internal constructor(
-    default: T, val type: KClass<T>, var validator: ((T) -> Boolean)? = null
+    default: T,
+    val type: KClass<T>,
+    var validator: ((T) -> Boolean)? = null,
 ) : ConfigProperty<T>(default) {
     override fun isValid(v: T): Boolean = validator?.invoke(v) ?: true
     override fun <R> accept(name: String, visitor: ConfigPropertyVisitor<R>) = visitor.visit(name, this)
@@ -43,9 +48,8 @@ class EnumConfigProperty<T : Enum<T>> @PublishedApi internal constructor(default
     override fun <R> accept(name: String, visitor: ConfigPropertyVisitor<R>): R = visitor.visit(name, this)
 }
 
-class OneOfConfigProperty<T : Any> internal constructor(
-    default: T, type: KClass<T>, val allowedValues: Collection<T>
-) : NormalConfigProperty<T>(default, type) {
+class OneOfConfigProperty<T : Any> internal constructor(default: T, type: KClass<T>, val allowedValues: Collection<T>) :
+    NormalConfigProperty<T>(default, type) {
     override fun isValid(v: T): Boolean = v in allowedValues
     override fun <R> accept(name: String, visitor: ConfigPropertyVisitor<R>): R = visitor.visit(name, this)
 }
@@ -54,7 +58,9 @@ infix fun <T : Any> NormalConfigProperty<T>.oneOf(allowedValues: Collection<T>) 
     OneOfConfigProperty(default, type, allowedValues)
 
 class RangedConfigProperty<T : Comparable<T>> internal constructor(
-    default: T, type: KClass<T>, val range: ClosedRange<T>
+    default: T,
+    type: KClass<T>,
+    val range: ClosedRange<T>,
 ) : NormalConfigProperty<T>(default, type) {
     override fun isValid(v: T): Boolean = v in range
     override fun <R> accept(name: String, visitor: ConfigPropertyVisitor<R>): R = visitor.visit(name, this)
@@ -68,7 +74,7 @@ class ListConfigProperty<E : Any> @PublishedApi internal constructor(
     val elementType: KClass<E>,
     val newElement: () -> E,
     val elementValidator: (E) -> Boolean,
-    val allowEmpty: Boolean
+    val allowEmpty: Boolean,
 ) : ConfigProperty<List<E>>(default) {
     override fun isValid(v: List<E>) = (allowEmpty || v.isNotEmpty()) && v.all(elementValidator)
     override fun <R> accept(name: String, visitor: ConfigPropertyVisitor<R>): R = visitor.visit(name, this)

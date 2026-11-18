@@ -11,8 +11,9 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.safeCast
 
-
-class FabricConfigBuilder(private val spec: ConfigSpec) : ConfigTreeWalker(LOGGER), ConfigPropertyVisitor<Unit> {
+class FabricConfigBuilder(private val spec: ConfigSpec) :
+    ConfigTreeWalker(LOGGER),
+    ConfigPropertyVisitor<Unit> {
     companion object {
         private val LOGGER: Logger = LogUtils.getLogger()
         private val JSON = Json { prettyPrint = true }
@@ -67,7 +68,11 @@ class FabricConfigBuilder(private val spec: ConfigSpec) : ConfigTreeWalker(LOGGE
             val clamped = parsed.coerceIn(p.range)
             if (parsed != clamped) {
                 LOGGER.warn(
-                    "Config entry {} (value: {}) is out of range {}. Clamped to {}.", name, parsed, p.range, clamped
+                    "Config entry {} (value: {}) is out of range {}. Clamped to {}.",
+                    name,
+                    parsed,
+                    p.range,
+                    clamped,
                 )
             }
             p.setter(clamped)
@@ -90,9 +95,11 @@ class FabricConfigBuilder(private val spec: ConfigSpec) : ConfigTreeWalker(LOGGE
                     name,
                     it.content,
                     enumValues.joinToString { e -> e.name },
-                    p.default
+                    p.default,
                 )
-            } else p.setter(found)
+            } else {
+                p.setter(found)
+            }
         }
         emit(name, p)
     }
@@ -144,7 +151,7 @@ class FabricConfigBuilder(private val spec: ConfigSpec) : ConfigTreeWalker(LOGGE
                 "Config entry {} (value: {}) is an invalid representation. Falling back to default one ({}).",
                 name,
                 primitive,
-                default
+                default,
             )
             default
         }

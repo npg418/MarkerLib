@@ -11,6 +11,6 @@ abstract class ConfigSpec(val configType: ConfigType) {
         default: List<E>,
         noinline newElement: () -> E,
         noinline elementValidator: (E) -> Boolean = { true },
-        allowEmpty: Boolean = default.isEmpty()
+        allowEmpty: Boolean = default.isEmpty(),
     ) = ListConfigProperty(default, E::class, newElement, elementValidator, allowEmpty)
 }

@@ -11,7 +11,9 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.safeCast
 
-class ForgeConfigBuilder(private val spec: ConfigSpec) : ConfigTreeWalker(LOGGER), ConfigPropertyVisitor<Unit> {
+class ForgeConfigBuilder(private val spec: ConfigSpec) :
+    ConfigTreeWalker(LOGGER),
+    ConfigPropertyVisitor<Unit> {
     companion object {
         private val LOGGER = LogUtils.getLogger()
     }
@@ -31,9 +33,7 @@ class ForgeConfigBuilder(private val spec: ConfigSpec) : ConfigTreeWalker(LOGGER
         annotated.findAnnotation<Translation>()?.let { builder.translation(it.value) }
     }
 
-    override fun onSection(
-        name: String, sectionClass: KClass<*>, visitChildren: () -> Unit
-    ) {
+    override fun onSection(name: String, sectionClass: KClass<*>, visitChildren: () -> Unit) {
         applyMeta(sectionClass)
         builder.push(name)
         try {
@@ -52,8 +52,11 @@ class ForgeConfigBuilder(private val spec: ConfigSpec) : ConfigTreeWalker(LOGGER
     private fun <T : Any> ForgeConfigSpec.ConfigValue<T>.bind(d: ConfigProperty<T>) {
         d.getter = this::get
         d.setter = {
-            if (d.isValid(it)) set(it)
-            else ConfigProperty.LOGGER.error("Validation for config value {} failed. The value was not set.", it)
+            if (d.isValid(it)) {
+                set(it)
+            } else {
+                ConfigProperty.LOGGER.error("Validation for config value {} failed. The value was not set.", it)
+            }
         }
     }
 

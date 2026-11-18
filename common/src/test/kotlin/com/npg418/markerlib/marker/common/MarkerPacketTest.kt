@@ -27,7 +27,7 @@ class MarkerPacketTest {
     private fun <T : MarkerPacket> assertPacketRoundTrip(
         packet: T,
         encode: T.(FriendlyByteBuf) -> Unit,
-        decode: (FriendlyByteBuf) -> T
+        decode: (FriendlyByteBuf) -> T,
     ) {
         val buf = FriendlyByteBuf(Unpooled.buffer())
         packet.encode(buf)

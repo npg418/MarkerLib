@@ -7,20 +7,10 @@ import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.jvm.isAccessible
 
-abstract class ConfigTreeWalker(
-    private val logger: Logger,
-) {
-    abstract fun onSection(
-        name: String,
-        sectionClass: KClass<*>,
-        visitChildren: () -> Unit,
-    )
+abstract class ConfigTreeWalker(private val logger: Logger) {
+    abstract fun onSection(name: String, sectionClass: KClass<*>, visitChildren: () -> Unit)
 
-    abstract fun onProperty(
-        name: String,
-        property: KProperty1<out Any, *>,
-        delegate: ConfigProperty<*>,
-    )
+    abstract fun onProperty(name: String, property: KProperty1<out Any, *>, delegate: ConfigProperty<*>)
 
     protected fun walkRoot(kClass: KClass<out ConfigSpec>): Result<Unit> {
         val instance =
@@ -34,10 +24,7 @@ abstract class ConfigTreeWalker(
         return Result.success(Unit)
     }
 
-    private fun walk(
-        kClass: KClass<*>,
-        instance: Any,
-    ) {
+    private fun walk(kClass: KClass<*>, instance: Any) {
         kClass.declaredMemberProperties.forEach { property ->
             val name = property.findAnnotation<Name>()?.value ?: property.name
             property.isAccessible = true
