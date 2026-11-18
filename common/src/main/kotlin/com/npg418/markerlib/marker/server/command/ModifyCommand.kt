@@ -48,6 +48,7 @@ object ModifyCommand {
             ).then(property("blend", floatArg(0f, 1f), FloatArgumentType::getFloat) { copy(blend = it) })
             .then(property("label", greedyString(), StringArgumentType::getString) { copy(label = it) })
             .then(property("show_distance", bool(), BoolArgumentType::getBool) { copy(showDistance = it) })
+            .then(property("hide_by_block", bool(), BoolArgumentType::getBool) { copy(hideByBlock = it) })
             .then(visibleToNode()),
     )
 

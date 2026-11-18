@@ -7,7 +7,12 @@ import com.npg418.markerlib.marker.common.Marker
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.Font
 import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.core.BlockPos
 import net.minecraft.resources.ResourceLocation
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.level.ClipContext
+import net.minecraft.world.phys.HitResult
+import net.minecraft.world.phys.Vec3
 import org.joml.Matrix4f
 import org.joml.Vector4f
 import kotlin.math.abs
@@ -35,6 +40,7 @@ object MarkerRenderer {
 
     fun render(g: GuiGraphics, markers: Collection<Marker>, partialTick: Float) {
         val mc = Minecraft.getInstance()
+        val player = mc.player ?: return
         val level = mc.level ?: return
         if (mc.options.hideGui) return
 
@@ -57,10 +63,17 @@ object MarkerRenderer {
                     val sy = (0.5f - v.y * iw * flip * 0.5f) * h
 
                     val dist = cam.distanceTo(pos)
-                    val arrow = marker.icon.arrowTexture
+                    val arrow = if (marker.hideByBlock) null else marker.icon.arrowTexture
 
                     val inside = sx in margin..(w - margin) && sy in margin..(h - bottom)
-                    if (!behind && (arrow == null || inside)) {
+                    if (!behind && (arrow == null || inside) && (
+                            !marker.hideByBlock || !isOccluded(
+                                player,
+                                cam,
+                                pos,
+                            )
+                            )
+                    ) {
                         add(RenderItem(sx, sy, dist, marker.icon.iconTexture, marker))
                     } else if (arrow != null) {
                         val dx = sx - w / 2f
@@ -77,6 +90,14 @@ object MarkerRenderer {
         }.sortedWith(compareBy<RenderItem> { it.angle == null }.thenByDescending { it.dist })
 
         items.forEach { draw(g, mc.font, it) }
+    }
+
+    private fun isOccluded(player: Player, from: Vec3, to: Vec3): Boolean {
+        val hit = player.level().clip(
+            ClipContext(from, to, ClipContext.Block.VISUAL, ClipContext.Fluid.NONE, player),
+        )
+        if (hit.type == HitResult.Type.MISS) return false
+        return hit.blockPos != BlockPos.containing(to)
     }
 
     private fun draw(g: GuiGraphics, font: Font, item: RenderItem) = with(item) {

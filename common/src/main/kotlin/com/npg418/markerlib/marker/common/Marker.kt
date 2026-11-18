@@ -17,6 +17,7 @@ data class Marker(
     val blend: Float = 1f,
     val label: String? = null,
     val showDistance: Boolean = true,
+    val hideByBlock: Boolean = false,
 ) {
     init {
         require(blend in 0f..1f) { "blend must be in 0..1 but was $blend" }
@@ -31,6 +32,7 @@ data class Marker(
         buf.writeFloat(blend)
         buf.writeNullable(label) { b, s -> b.writeUtf(s) }
         buf.writeBoolean(showDistance)
+        buf.writeBoolean(hideByBlock)
     }
 
     companion object {
@@ -43,8 +45,9 @@ data class Marker(
                 Codec.floatRange(0f, 1f).fieldOf("blend").forGetter { it.blend },
                 Codec.STRING.optionalFieldOf("label").forGetter { Optional.ofNullable(it.label) },
                 Codec.BOOL.fieldOf("showDistance").forGetter { it.showDistance },
-            ).apply(i) { id, positions, icon, color, blend, label, showDistance ->
-                Marker(id, positions, emptySet(), icon, color, blend, label.getOrNull(), showDistance)
+                Codec.BOOL.fieldOf("hideByBlock").forGetter { it.hideByBlock },
+            ).apply(i) { id, positions, icon, color, blend, label, showDistance, hideByBlock ->
+                Marker(id, positions, emptySet(), icon, color, blend, label.getOrNull(), showDistance, hideByBlock)
             }
         }
 
@@ -57,6 +60,7 @@ data class Marker(
             blend = buf.readFloat(),
             label = buf.readNullable { it.readUtf() },
             showDistance = buf.readBoolean(),
+            hideByBlock = buf.readBoolean(),
         )
     }
 }
