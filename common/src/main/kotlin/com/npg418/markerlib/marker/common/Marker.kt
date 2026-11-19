@@ -16,7 +16,7 @@ data class Marker(
     val color: Int = 0xFF3030,
     val blend: Float = 1f,
     val label: String? = null,
-    val showDistance: Boolean = true,
+    val showDistance: Boolean = false,
     val hideByBlock: Boolean = false,
 ) {
     init {

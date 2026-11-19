@@ -1,5 +1,6 @@
 package com.npg418.markerlib.marker.client
 
+import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.math.Axis
 import com.npg418.markerlib.config.ClientConfig
@@ -15,10 +16,7 @@ import net.minecraft.world.phys.HitResult
 import net.minecraft.world.phys.Vec3
 import org.joml.Matrix4f
 import org.joml.Vector4f
-import kotlin.math.abs
-import kotlin.math.atan2
-import kotlin.math.min
-import kotlin.math.roundToInt
+import kotlin.math.*
 
 object MarkerRenderer {
     private class RenderItem(
@@ -101,11 +99,12 @@ object MarkerRenderer {
     }
 
     private fun draw(g: GuiGraphics, font: Font, item: RenderItem) = with(item) {
-        val color = RGB(0xFFFFFF).lerp(marker.blend, RGB(marker.color))
         val baseSize = ClientConfig.Rendering.baseIconSize
         val markerSize = marker.icon.size
         val distScale = distanceScale(dist)
         val edge = angle != null
+        val color = RGB(0xFFFFFF).lerp(marker.blend, RGB(marker.color))
+        val alpha = if (edge) 1f else crosshairAlpha(g, sx, sy)
 
         g.pose().withStack {
             g.pose().translate(sx, sy, 0f)
@@ -114,16 +113,18 @@ object MarkerRenderer {
             if (marker.showDistance) {
                 val textScale = ClientConfig.Rendering.textScale
                 val textH = font.lineHeight * textScale
+                val argb = ((alpha * 255f).roundToInt() shl 24) or color.rgb
                 if (!edge) g.pose().translate(0f, -textH, 0f)
                 g.pose().withStack {
                     g.pose().scale(textScale, textScale, 1f)
-                    g.drawCenteredString(font, "${dist.roundToInt()}m", 0, 0, (0xFF shl 24) or color.rgb)
+                    g.drawCenteredString(font, "${dist.roundToInt()}m", 0, 0, argb)
                 }
                 g.pose().translate(0f, -(textH / 2f + 2f), 0f)
             }
             if (edge) g.pose().mulPose(Axis.ZP.rotation(angle))
             g.pose().translate(-baseSize / 2f, -baseSize / 2f, 0f)
-            g.setColor(color.r / 255f, color.g / 255f, color.b / 255f, 1f)
+            RenderSystem.enableBlend()
+            g.setColor(color.r / 255f, color.g / 255f, color.b / 255f, alpha)
             g.blit(atlas, 0, 0, baseSize, baseSize, 0f, 0f, 1, 1, 1, 1)
             g.setColor(1f, 1f, 1f, 1f)
         }
@@ -132,6 +133,15 @@ object MarkerRenderer {
     private fun distanceScale(dist: Double): Float = with(ClientConfig.Rendering) {
         (scaleRefDistance / dist.coerceAtLeast(0.1)).toFloat().coerceIn(minScale, maxScale)
     }
+
+    private fun crosshairAlpha(g: GuiGraphics, sx: Float, sy: Float): Float =
+        with(ClientConfig.Rendering.CrosshairFade) {
+            if (radius <= 0f) return 1f
+            val d = hypot(sx - g.guiWidth() / 2f, sy - g.guiHeight() / 2f)
+            val t = (d / radius).coerceIn(0f, 1f)
+            val s = t * t * (3f - 2f * t)
+            minAlpha + (1f - minAlpha) * s
+        }
 
     private inline fun PoseStack.withStack(block: () -> Unit) {
         pushPose()
