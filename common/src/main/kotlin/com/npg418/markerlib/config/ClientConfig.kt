@@ -23,29 +23,44 @@ object ClientConfig : ConfigSpec(ConfigType.CLIENT) {
         )
         val extraBottomMargin by entry(24f) ranged 0f..100f
 
-        @Comment(
-            "Reference distance (in blocks) at which a marker's distanceScale equals 1.0.",
-            "Markers farther than this shrink down to 'minScale'; closer ones grow up to 'maxScale'.",
-        )
-        val scaleRefDistance by entry(8f) ranged 1f..1024f
+        @Name("scale")
+        object Scale {
+            @Comment(
+                "Reference distance (in blocks) at which a marker's distanceScale equals 1.0.",
+                "Markers farther than this shrink down to 'minScale'; closer ones grow up to 'maxScale'.",
+            )
+            val refDistance by entry(8f) ranged 1f..1024f
 
-        @Comment(
-            "Minimum distance-based scale multiplier applied to distant markers.",
-            "Prevents far-away markers from shrinking too small to see.",
-        )
-        val minScale by entry(0.4f) ranged 0.1f..1f
+            @Comment(
+                "Minimum distance-based scale multiplier applied to distant markers.",
+                "Prevents far-away markers from shrinking too small to see.",
+            )
+            val minScale by entry(0.4f) ranged 0.1f..1f
 
-        @Comment(
-            "Maximum distance-based scale multiplier applied to nearby markers.",
-            "Prevents close-range markers from becoming overly large and obstructing the view.",
-        )
-        val maxScale by entry(1f) ranged 1f..4f
+            @Comment(
+                "Maximum distance-based scale multiplier applied to nearby markers.",
+                "Prevents close-range markers from becoming overly large and obstructing the view.",
+            )
+            val maxScale by entry(1f) ranged 1f..4f
 
-        @Comment(
-            "Scale multiplier applied to marker label and distance text.",
-            "Affects text size independently of the marker icon size.",
-        )
-        val textScale by entry(1f) ranged 0.25f..2f
+            @Comment(
+                "Scale multiplier applied to marker label and distance text.",
+                "Affects text size independently of the marker icon size.",
+            )
+            val textScale by entry(1f) ranged 0.25f..2f
+
+            @Comment(
+                "Enlarges on-screen markers when the camera FOV is narrowed below the 'FOV' video setting.",
+                "Keeps markers readable while using a spyglass or a zoom mod. Edge arrows are not affected.",
+            )
+            val scaleWithZoom by entry(true)
+
+            @Comment(
+                "Upper bound of the zoom-based scale multiplier (1.0 = no enlargement).",
+                "A spyglass narrows the FOV to roughly 1/10, so the multiplier is capped to keep markers from becoming huge.",
+            )
+            val maxZoomScale by entry(4f) ranged 1f..16f
+        }
 
         @Name("crosshairFade")
         object CrosshairFade {

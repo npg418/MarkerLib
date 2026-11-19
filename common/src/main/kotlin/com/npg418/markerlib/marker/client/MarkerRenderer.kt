@@ -31,9 +31,12 @@ object MarkerRenderer {
     private const val EPS = 1e-6f
 
     private val viewProj = Matrix4f()
+    private var zoomFactor = 1f
 
     fun captureMatrices(projection: Matrix4f, view: Matrix4f) {
         viewProj.set(projection).mul(view)
+        val baseFov = Math.toRadians(Minecraft.getInstance().options.fov().get().toDouble())
+        zoomFactor = (projection.m11() * tan(baseFov / 2.0)).toFloat()
     }
 
     fun render(g: GuiGraphics, markers: Collection<Marker>, partialTick: Float) {
@@ -64,13 +67,11 @@ object MarkerRenderer {
                     val arrow = if (marker.hideByBlock) null else marker.icon.arrowTexture
 
                     val inside = sx in margin..(w - margin) && sy in margin..(h - bottom)
-                    if (!behind && (arrow == null || inside) && (
-                            !marker.hideByBlock || !isOccluded(
-                                player,
-                                cam,
-                                pos,
-                            )
-                            )
+                    if (!behind && (arrow == null || inside) && (!marker.hideByBlock || !isOccluded(
+                            player,
+                            cam,
+                            pos,
+                        ))
                     ) {
                         add(RenderItem(sx, sy, dist, marker.icon.iconTexture, marker))
                     } else if (arrow != null) {
@@ -111,7 +112,7 @@ object MarkerRenderer {
             g.pose().scale(markerSize, markerSize, 1f)
             if (!edge) g.pose().scale(distScale, distScale, 1f)
             if (marker.showDistance) {
-                val textScale = ClientConfig.Rendering.textScale
+                val textScale = ClientConfig.Rendering.Scale.textScale
                 val textH = font.lineHeight * textScale
                 val argb = ((alpha * 255f).roundToInt() shl 24) or color.rgb
                 if (!edge) g.pose().translate(0f, -textH, 0f)
@@ -130,8 +131,9 @@ object MarkerRenderer {
         }
     }
 
-    private fun distanceScale(dist: Double): Float = with(ClientConfig.Rendering) {
-        (scaleRefDistance / dist.coerceAtLeast(0.1)).toFloat().coerceIn(minScale, maxScale)
+    private fun distanceScale(dist: Double): Float = with(ClientConfig.Rendering.Scale) {
+        val base = (refDistance / dist.coerceAtLeast(0.1)).toFloat().coerceIn(minScale, maxScale)
+        if (scaleWithZoom) base * zoomFactor.coerceIn(1f, maxZoomScale) else base
     }
 
     private fun crosshairAlpha(g: GuiGraphics, sx: Float, sy: Float): Float =
