@@ -76,9 +76,6 @@ internal fun updateServerEntry(ctx: Ctx, refresh: Boolean = false, transform: (S
 internal fun updateMarker(ctx: Ctx, transform: Marker.() -> Marker) =
     updateServerEntry(ctx) { it.copy(marker = transform(it.marker)) }
 
-private const val POINT_EPSILON = 0.001
-internal fun samePoint(a: Vec3, b: Vec3): Boolean = a.distanceToSqr(b) <= POINT_EPSILON * POINT_EPSILON
-
 internal fun parseColor(s: String): Int {
     val hex = s.removePrefix("#")
     if (hex.length != 6 || !hex.all { it in '0'..'9' || it in 'a'..'f' || it in 'A'..'F' }) {

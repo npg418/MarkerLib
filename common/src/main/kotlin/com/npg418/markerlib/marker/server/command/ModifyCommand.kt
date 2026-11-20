@@ -18,8 +18,7 @@ import net.minecraft.commands.arguments.ResourceLocationArgument
 object ModifyCommand {
     fun node(): LiteralArgumentBuilder<CommandSourceStack> = literal("modify").then(
         idArgumentNode().suggests(idSuggestions)
-            .then(property("color", word(), StringArgumentType::getString) { copy(color = parseColor(it)) })
-            .then(
+            .then(property("color", word(), StringArgumentType::getString) { copy(color = parseColor(it)) }).then(
                 property(
                     "icon",
                     ResourceLocationArgument.id(),
@@ -46,8 +45,8 @@ object ModifyCommand {
                     copy(icon = icon.copy(entityIconOffset = it))
                 },
             ).then(property("blend", floatArg(0f, 1f), FloatArgumentType::getFloat) { copy(blend = it) })
-            .then(property("label", greedyString(), StringArgumentType::getString) { copy(label = it) })
-            .then(property("show_distance", bool(), BoolArgumentType::getBool) { copy(showDistance = it) })
+            .then(property("top_text", greedyString(), StringArgumentType::getString) { copy(topText = it) })
+            .then(property("bottom_text", greedyString(), StringArgumentType::getString) { copy(bottomText = it) })
             .then(property("hide_by_block", bool(), BoolArgumentType::getBool) { copy(hideByBlock = it) })
             .then(visibleToNode()),
     )
@@ -68,8 +67,7 @@ object ModifyCommand {
         literal("all").executes { ctx ->
             updateServerEntry(ctx) { it.copy(visibleTo = null) }
         },
-    )
-        .then(
+    ).then(
             argument("players", EntityArgument.players()).executes { ctx ->
                 val raw = ctx.rawArgument("players")
                 updateServerEntry(ctx, refresh = true) { it.copy(visibleTo = raw) }

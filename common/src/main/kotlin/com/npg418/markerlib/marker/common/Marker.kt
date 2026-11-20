@@ -2,6 +2,8 @@ package com.npg418.markerlib.marker.common
 
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
+import com.npg418.markerlib.marker.readVec3
+import com.npg418.markerlib.marker.writeVec3
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.phys.Vec3
@@ -15,8 +17,8 @@ data class Marker(
     val icon: MarkerIcon = MarkerIcon(),
     val color: Int = 0xFF3030,
     val blend: Float = 1f,
-    val label: String? = null,
-    val showDistance: Boolean = false,
+    val topText: String? = null,
+    val bottomText: String? = null,
     val hideByBlock: Boolean = false,
 ) {
     init {
@@ -30,8 +32,8 @@ data class Marker(
         icon.write(buf)
         buf.writeInt(color)
         buf.writeFloat(blend)
-        buf.writeNullable(label) { b, s -> b.writeUtf(s) }
-        buf.writeBoolean(showDistance)
+        buf.writeNullable(topText) { b, s -> b.writeUtf(s) }
+        buf.writeNullable(bottomText) { b, s -> b.writeUtf(s) }
         buf.writeBoolean(hideByBlock)
     }
 
@@ -43,11 +45,21 @@ data class Marker(
                 MarkerIcon.CODEC.fieldOf("icon").forGetter { it.icon },
                 Codec.intRange(0x000000, 0xFFFFFF).fieldOf("color").forGetter { it.color },
                 Codec.floatRange(0f, 1f).fieldOf("blend").forGetter { it.blend },
-                Codec.STRING.optionalFieldOf("label").forGetter { Optional.ofNullable(it.label) },
-                Codec.BOOL.fieldOf("showDistance").forGetter { it.showDistance },
+                Codec.STRING.optionalFieldOf("topText").forGetter { Optional.ofNullable(it.topText) },
+                Codec.STRING.optionalFieldOf("bottomText").forGetter { Optional.ofNullable(it.bottomText) },
                 Codec.BOOL.fieldOf("hideByBlock").forGetter { it.hideByBlock },
-            ).apply(i) { id, positions, icon, color, blend, label, showDistance, hideByBlock ->
-                Marker(id, positions, emptySet(), icon, color, blend, label.getOrNull(), showDistance, hideByBlock)
+            ).apply(i) { id, positions, icon, color, blend, topText, bottomText, hideByBlock ->
+                Marker(
+                    id,
+                    positions,
+                    emptySet(),
+                    icon,
+                    color,
+                    blend,
+                    topText.getOrNull(),
+                    bottomText.getOrNull(),
+                    hideByBlock
+                )
             }
         }
 
@@ -58,8 +70,8 @@ data class Marker(
             icon = MarkerIcon.read(buf),
             color = buf.readInt() and 0xFFFFFF,
             blend = buf.readFloat(),
-            label = buf.readNullable { it.readUtf() },
-            showDistance = buf.readBoolean(),
+            topText = buf.readNullable { it.readUtf() },
+            bottomText = buf.readNullable { it.readUtf() },
             hideByBlock = buf.readBoolean(),
         )
     }

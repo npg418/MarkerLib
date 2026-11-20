@@ -5,11 +5,13 @@ import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.math.Axis
 import com.npg418.markerlib.config.ClientConfig
 import com.npg418.markerlib.marker.common.Marker
+import com.npg418.markerlib.marker.format
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.Font
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.core.BlockPos
 import net.minecraft.resources.ResourceLocation
+import net.minecraft.world.entity.Entity
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.level.ClipContext
 import net.minecraft.world.phys.HitResult
@@ -22,11 +24,27 @@ object MarkerRenderer {
     private class RenderItem(
         val sx: Float,
         val sy: Float,
+        val pos: Vec3,
         val dist: Double,
         val atlas: ResourceLocation,
         val marker: Marker,
+        val entity: Entity? = null,
         val angle: Float? = null,
-    )
+    ) {
+        fun expand(template: String) = TOKEN.replace(template) {
+            when (it.groupValues[1]) {
+                "name" -> entity?.name?.string ?: it.value
+                "dist" -> dist.roundToInt().toString()
+                "pos" -> pos.format(0)
+                "position" -> pos.format()
+                else -> it.value
+            }
+        }
+
+        companion object {
+            private val TOKEN = Regex("""\{(\w+)}""")
+        }
+    }
 
     private const val EPS = 1e-6f
 
@@ -39,7 +57,7 @@ object MarkerRenderer {
         zoomFactor = (projection.m11() * tan(baseFov / 2.0)).toFloat()
     }
 
-    fun render(g: GuiGraphics, markers: Collection<Marker>, partialTick: Float) {
+    fun render(g: GuiGraphics, markers: Collection<Marker>, partialTicks: Float) {
         val mc = Minecraft.getInstance()
         val player = mc.player ?: return
         val level = mc.level ?: return
@@ -54,8 +72,10 @@ object MarkerRenderer {
         val ctx = ResolveContext(level, markers)
         val items = buildList {
             for (marker in markers) {
-                for (pos in marker.positions + ctx.getEntityPositions(marker, partialTick)) {
-                    val d = pos.subtract(cam)
+                for ((pos, entity) in marker.positions.map { it to null } + ctx.resolve(marker, partialTicks)) {
+                    val renderPos =
+                        pos.add(0.0, (entity?.bbHeight?.toDouble() ?: 0.0) + marker.icon.entityIconOffset, 0.0)
+                    val d = renderPos.subtract(cam)
                     val v = Vector4f(d.x.toFloat(), d.y.toFloat(), d.z.toFloat(), 1f).mul(viewProj)
                     val behind = v.w < 0f
                     val iw = 1f / (if (abs(v.w) < EPS) EPS else v.w)
@@ -63,17 +83,17 @@ object MarkerRenderer {
                     val sx = (v.x * iw * flip * 0.5f + 0.5f) * w
                     val sy = (0.5f - v.y * iw * flip * 0.5f) * h
 
-                    val dist = cam.distanceTo(pos)
+                    val dist = player.getPosition(partialTicks).distanceTo(pos)
                     val arrow = if (marker.hideByBlock) null else marker.icon.arrowTexture
 
                     val inside = sx in margin..(w - margin) && sy in margin..(h - bottom)
                     if (!behind && (arrow == null || inside) && (!marker.hideByBlock || !isOccluded(
                             player,
                             cam,
-                            pos,
+                            renderPos,
                         ))
                     ) {
-                        add(RenderItem(sx, sy, dist, marker.icon.iconTexture, marker))
+                        add(RenderItem(sx, sy, pos, dist, marker.icon.iconTexture, marker, entity))
                     } else if (arrow != null) {
                         val dx = sx - w / 2f
                         var dy = sy - h / 2f
@@ -82,7 +102,11 @@ object MarkerRenderer {
                             (w / 2 - margin) / abs(dx),
                             (h / 2 - (if (dy > 0f) bottom else margin)) / abs(dy),
                         )
-                        add(RenderItem(w / 2 + dx * k, h / 2 + dy * k, dist, arrow, marker, atan2(dy, dx)))
+                        add(
+                            RenderItem(
+                                w / 2 + dx * k, h / 2 + dy * k, pos, dist, arrow, marker, entity, atan2(dy, dx)
+                            )
+                        )
                     }
                 }
             }
@@ -104,7 +128,7 @@ object MarkerRenderer {
         val size = ClientConfig.baseIconSize
         val distScale = distanceScale(dist)
         val lift =
-            marker.icon.size * distScale * (size / 2f + if (marker.showDistance) 2f + font.lineHeight * ClientConfig.Scale.textScale else 0f)
+            marker.icon.size * distScale * (size / 2f + if (marker.bottomText != null) 2f + font.lineHeight * ClientConfig.Scale.textScale else 0f)
         val color = RGB(0xFFFFFF).lerp(marker.blend, RGB(marker.color))
         val alpha = if (edge) 1f else crosshairAlpha(g, sx, sy - lift)
         val argb = ((alpha * 255f).roundToInt() shl 24) or color.rgb
@@ -117,8 +141,12 @@ object MarkerRenderer {
             }
             g.pose().scale(marker.icon.size, marker.icon.size, 1f)
 
-            if (marker.showDistance) drawText(g, font, "${dist.roundToInt()}m", size / 2f + 2f, argb)
-            if (marker.label != null) drawText(g, font, marker.label, -(size / 2f + 2f), argb, true)
+            marker.bottomText?.let {
+                drawText(g, font, expand(it), size / 2f + 2f, argb)
+            }
+            marker.topText?.let {
+                drawText(g, font, expand(it), -(size / 2f + 2f), argb, true)
+            }
 
             if (edge) g.pose().mulPose(Axis.ZP.rotation(angle))
             RenderSystem.enableBlend()
@@ -132,16 +160,11 @@ object MarkerRenderer {
     }
 
     private fun drawText(
-        g: GuiGraphics,
-        font: Font,
-        text: String,
-        y: Float,
-        color: Int,
-        bottomAnchor: Boolean = false
+        g: GuiGraphics, font: Font, text: String, y: Float, color: Int, bottomAnchor: Boolean = false
     ) {
         g.pose().withStack {
-            g.pose().translate(0f, y, 1f)
-            g.pose().scale(ClientConfig.Scale.textScale, ClientConfig.Scale.textScale, 0f)
+            g.pose().translate(0f, y, 0f)
+            g.pose().scale(ClientConfig.Scale.textScale, ClientConfig.Scale.textScale, 1f)
             g.drawCenteredString(font, text, 0, if (bottomAnchor) -font.lineHeight else 0, color)
         }
     }

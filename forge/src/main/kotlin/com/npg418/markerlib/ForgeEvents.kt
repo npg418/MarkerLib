@@ -97,8 +97,8 @@ object CommonForgeEvents {
 object ClientModEvents {
     @SubscribeEvent
     fun onRegisterOverlays(e: RegisterGuiOverlaysEvent) {
-        e.registerBelowAll("markers") { _, g, partialTick, _, _ ->
-            MarkerRenderer.render(g, ClientMarkers.all, partialTick)
+        e.registerBelowAll("markers") { _, g, partialTicks, _, _ ->
+            MarkerRenderer.render(g, ClientMarkers.all, partialTicks)
         }
     }
 }
