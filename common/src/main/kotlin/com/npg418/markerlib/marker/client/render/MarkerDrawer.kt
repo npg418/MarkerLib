@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.math.Axis
 import com.npg418.markerlib.config.ClientConfig
 import com.npg418.markerlib.marker.client.RGB
+import com.npg418.markerlib.marker.common.Marker
 import net.minecraft.client.gui.Font
 import net.minecraft.client.gui.GuiGraphics
 import kotlin.math.hypot
@@ -12,17 +13,24 @@ import kotlin.math.max
 import kotlin.math.roundToInt
 
 internal object MarkerDrawer {
+    private const val TEXT_GAP = 2f
+
+    fun reach(marker: Marker, font: Font): Float =
+        marker.icon.size * (ClientConfig.baseIconSize / 2f + TEXT_GAP + font.lineHeight * ClientConfig.Scale.textScale)
+
     fun draw(g: GuiGraphics, font: Font, item: RenderItem) {
         val marker = item.marker
         val p = item.placement
         val onScreen = p is Placement.Icon
         val size = ClientConfig.baseIconSize
         val iconScale = marker.icon.size
-        val textScale = ClientConfig.Scale.textScale
 
         val distScale = if (onScreen) distanceScale(item.dist) else 1f
-        val bottomExtra = if (marker.bottomText != null) 2f + font.lineHeight * textScale else 0f
-        val lift = if (onScreen) iconScale * distScale * (size / 2f + bottomExtra) else 0f
+        val lift = if (onScreen) {
+            distScale * if (marker.bottomText != null) reach(marker, font) else iconScale * size / 2f
+        } else {
+            0f
+        }
 
         val color = RGB(0xFFFFFF).lerp(marker.blend, RGB(marker.color))
         val alpha = if (onScreen) crosshairAlpha(g, p.x, p.y - lift) else 1f
@@ -38,11 +46,11 @@ internal object MarkerDrawer {
 
             marker.bottomText?.let {
                 val t = LabelTemplate.expand(it, item)
-                drawText(g, font, t, edgeShift(g, font, item, t), size / 2f + 2f, argb, anchorBottom = false)
+                drawText(g, font, t, edgeShift(g, font, item, t), size / 2f + TEXT_GAP, argb, anchorBottom = false)
             }
             marker.topText?.let {
                 val t = LabelTemplate.expand(it, item)
-                drawText(g, font, t, edgeShift(g, font, item, t), -(size / 2f + 2f), argb, anchorBottom = true)
+                drawText(g, font, t, edgeShift(g, font, item, t), -(size / 2f + TEXT_GAP), argb, anchorBottom = true)
             }
 
             if (p is Placement.Arrow) g.pose().mulPose(Axis.ZP.rotation(p.angle))
@@ -61,7 +69,13 @@ internal object MarkerDrawer {
     }
 
     private fun drawText(
-        g: GuiGraphics, font: Font, text: String, x: Float, y: Float, color: Int, anchorBottom: Boolean,
+        g: GuiGraphics,
+        font: Font,
+        text: String,
+        x: Float,
+        y: Float,
+        color: Int,
+        anchorBottom: Boolean,
     ) {
         val s = ClientConfig.Scale.textScale
         g.pose().withStack {
