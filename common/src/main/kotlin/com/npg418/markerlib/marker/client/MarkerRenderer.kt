@@ -36,7 +36,7 @@ object MarkerRenderer {
                 "name" -> entity?.name?.string ?: it.value
                 "dist" -> dist.roundToInt().toString()
                 "pos" -> pos.format(0)
-                "position" -> pos.format()
+                "position" -> pos.format(stripZeros = false)
                 else -> it.value
             }
         }
@@ -127,11 +127,20 @@ object MarkerRenderer {
         val edge = angle != null
         val size = ClientConfig.baseIconSize
         val distScale = distanceScale(dist)
+        val textScale = ClientConfig.Scale.textScale
         val lift =
-            marker.icon.size * distScale * (size / 2f + if (marker.bottomText != null) 2f + font.lineHeight * ClientConfig.Scale.textScale else 0f)
+            marker.icon.size * distScale * (size / 2f + if (marker.bottomText != null) 2f + font.lineHeight * textScale else 0f)
         val color = RGB(0xFFFFFF).lerp(marker.blend, RGB(marker.color))
         val alpha = if (edge) 1f else crosshairAlpha(g, sx, sy - lift)
         val argb = ((alpha * 255f).roundToInt() shl 24) or color.rgb
+
+        fun textX(text: String): Float {
+            if (!edge) return 0f
+            val half = font.width(text) * textScale * marker.icon.size / 2f
+            val margin = ClientConfig.edgeMargin
+            val clamped = sx.coerceIn(half + margin, max(half, g.guiWidth() - (half + margin)))
+            return (clamped - sx) / marker.icon.size
+        }
 
         g.pose().withStack {
             g.pose().translate(sx, sy, 0f)
@@ -142,10 +151,12 @@ object MarkerRenderer {
             g.pose().scale(marker.icon.size, marker.icon.size, 1f)
 
             marker.bottomText?.let {
-                drawText(g, font, expand(it), size / 2f + 2f, argb)
+                val t = expand(it)
+                drawText(g, font, t, textX(t), size / 2f + 2f, argb)
             }
             marker.topText?.let {
-                drawText(g, font, expand(it), -(size / 2f + 2f), argb, true)
+                val t = expand(it)
+                drawText(g, font, t, textX(t), -(size / 2f + 2f), argb, true)
             }
 
             if (edge) g.pose().mulPose(Axis.ZP.rotation(angle))
@@ -160,10 +171,10 @@ object MarkerRenderer {
     }
 
     private fun drawText(
-        g: GuiGraphics, font: Font, text: String, y: Float, color: Int, bottomAnchor: Boolean = false
+        g: GuiGraphics, font: Font, text: String, x: Float, y: Float, color: Int, bottomAnchor: Boolean = false
     ) {
         g.pose().withStack {
-            g.pose().translate(0f, y, 0f)
+            g.pose().translate(x, y, 0f)
             g.pose().scale(ClientConfig.Scale.textScale, ClientConfig.Scale.textScale, 1f)
             g.drawCenteredString(font, text, 0, if (bottomAnchor) -font.lineHeight else 0, color)
         }
