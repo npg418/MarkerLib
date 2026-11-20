@@ -3,7 +3,7 @@ package com.npg418.markerlib
 import com.npg418.markerlib.datagen.ModItemModelProvider
 import com.npg418.markerlib.datagen.ModLanguageProvider
 import com.npg418.markerlib.marker.client.ClientMarkers
-import com.npg418.markerlib.marker.client.MarkerRenderer
+import com.npg418.markerlib.marker.client.render.MarkerRenderer
 import com.npg418.markerlib.marker.server.MarkerService
 import com.npg418.markerlib.marker.server.command.MarkerCommand
 import net.minecraft.server.level.ServerPlayer
