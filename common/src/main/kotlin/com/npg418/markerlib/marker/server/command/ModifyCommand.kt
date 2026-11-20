@@ -23,14 +23,22 @@ object ModifyCommand {
                     "icon",
                     ResourceLocationArgument.id(),
                     ResourceLocationArgument::getId,
-                ) { copy(icon = icon.copy(iconTexture = it)) },
+                ) { copy(icon = icon.copy(iconTexture = it)) }.then(
+                    literal("default").executes { ctx ->
+                        updateMarker(ctx) { copy(icon = icon.copy(iconTexture = MarkerIcon.DEFAULT_ICON)) }
+                    },
+                ),
             ).then(
                 property(
                     "arrow",
                     ResourceLocationArgument.id(),
                     ResourceLocationArgument::getId,
                     { copy(icon = icon.copy(arrowTexture = null)) },
-                ) { copy(icon = icon.copy(arrowTexture = it)) },
+                ) { copy(icon = icon.copy(arrowTexture = it)) }.then(
+                    literal("default").executes { ctx ->
+                        updateMarker(ctx) { copy(icon = icon.copy(arrowTexture = MarkerIcon.DEFAULT_ARROW)) }
+                    },
+                ),
             ).then(
                 property(
                     "size",
@@ -69,8 +77,7 @@ object ModifyCommand {
                     bool(),
                     BoolArgumentType::getBool,
                 ) { copy(hideByBlock = it) },
-            )
-            .then(visibleToNode()),
+            ).then(visibleToNode()),
     )
 
     private fun <T> property(
