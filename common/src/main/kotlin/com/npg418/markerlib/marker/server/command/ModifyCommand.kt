@@ -29,11 +29,8 @@ object ModifyCommand {
                     "arrow",
                     ResourceLocationArgument.id(),
                     ResourceLocationArgument::getId,
-                ) { copy(icon = icon.copy(arrowTexture = it)) }.then(
-                    literal("off").executes { ctx ->
-                        updateMarker(ctx) { copy(icon = icon.copy(arrowTexture = null)) }
-                    },
-                ),
+                    { copy(icon = icon.copy(arrowTexture = null)) },
+                ) { copy(icon = icon.copy(arrowTexture = it)) },
             ).then(
                 property(
                     "size",
@@ -41,13 +38,38 @@ object ModifyCommand {
                     FloatArgumentType::getFloat,
                 ) { copy(icon = icon.copy(size = it)) },
             ).then(
-                property("entity_offset", doubleArg(), DoubleArgumentType::getDouble) {
-                    copy(icon = icon.copy(entityIconOffset = it))
-                },
-            ).then(property("blend", floatArg(0f, 1f), FloatArgumentType::getFloat) { copy(blend = it) })
-            .then(property("top_text", greedyString(), StringArgumentType::getString) { copy(topText = it) })
-            .then(property("bottom_text", greedyString(), StringArgumentType::getString) { copy(bottomText = it) })
-            .then(property("hide_by_block", bool(), BoolArgumentType::getBool) { copy(hideByBlock = it) })
+                property(
+                    "entity_offset",
+                    doubleArg(),
+                    DoubleArgumentType::getDouble,
+                ) { copy(icon = icon.copy(entityIconOffset = it)) },
+            ).then(
+                property(
+                    "blend",
+                    floatArg(0f, 1f),
+                    FloatArgumentType::getFloat,
+                ) { copy(blend = it) },
+            ).then(
+                property(
+                    "top_text",
+                    greedyString(),
+                    StringArgumentType::getString,
+                    { copy(topText = null) },
+                ) { copy(topText = it) },
+            ).then(
+                property(
+                    "bottom_text",
+                    greedyString(),
+                    StringArgumentType::getString,
+                    { copy(bottomText = null) },
+                ) { copy(bottomText = it) },
+            ).then(
+                property(
+                    "hide_by_block",
+                    bool(),
+                    BoolArgumentType::getBool,
+                ) { copy(hideByBlock = it) },
+            )
             .then(visibleToNode()),
     )
 
@@ -55,8 +77,11 @@ object ModifyCommand {
         name: String,
         type: ArgumentType<T>,
         read: (Ctx, String) -> T,
+        noArgument: (Marker.() -> Marker)? = null,
         change: Marker.(T) -> Marker,
-    ) = literal(name).then(
+    ) = literal(name).apply {
+        if (noArgument != null) executes { ctx -> updateMarker(ctx) { noArgument() } }
+    }.then(
         argument(name, type).executes { ctx ->
             val value = read(ctx, name)
             updateMarker(ctx) { change(value) }
@@ -68,9 +93,9 @@ object ModifyCommand {
             updateServerEntry(ctx) { it.copy(visibleTo = null) }
         },
     ).then(
-            argument("players", EntityArgument.players()).executes { ctx ->
-                val raw = ctx.rawArgument("players")
-                updateServerEntry(ctx, refresh = true) { it.copy(visibleTo = raw) }
-            },
-        )
+        argument("players", EntityArgument.players()).executes { ctx ->
+            val raw = ctx.rawArgument("players")
+            updateServerEntry(ctx, refresh = true) { it.copy(visibleTo = raw) }
+        },
+    )
 }
