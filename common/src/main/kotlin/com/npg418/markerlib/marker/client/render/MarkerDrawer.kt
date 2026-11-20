@@ -32,9 +32,10 @@ internal object MarkerDrawer {
             0f
         }
 
-        val color = RGB(0xFFFFFF).lerp(marker.blend, RGB(marker.color))
+        val rgb = RGB(marker.color)
+        val color = RGB(0xFFFFFF).lerp(marker.blend, rgb)
         val alpha = if (onScreen) crosshairAlpha(g, p.x, p.y - lift) else 1f
-        val argb = ((alpha * 255f).roundToInt() shl 24) or color.rgb
+        val argb = ((alpha * 255f).roundToInt() shl 24) or rgb.rgb
 
         g.pose().withStack {
             g.pose().translate(p.x, p.y, 0f)
@@ -42,17 +43,18 @@ internal object MarkerDrawer {
                 g.pose().translate(0f, -lift, 0f)
                 g.pose().scale(distScale, distScale, 1f)
             }
-            g.pose().scale(iconScale, iconScale, 1f)
 
+            val dt = iconScale * size / 2f + TEXT_GAP
             marker.bottomText?.let {
                 val t = LabelTemplate.expand(it, item)
-                drawText(g, font, t, edgeShift(g, font, item, t), size / 2f + TEXT_GAP, argb, anchorBottom = false)
+                drawText(g, font, t, edgeShift(g, font, item, t), dt, argb, false)
             }
             marker.topText?.let {
                 val t = LabelTemplate.expand(it, item)
-                drawText(g, font, t, edgeShift(g, font, item, t), -(size / 2f + TEXT_GAP), argb, anchorBottom = true)
+                drawText(g, font, t, edgeShift(g, font, item, t), -dt, argb, true)
             }
 
+            g.pose().scale(iconScale, iconScale, 1f)
             if (p is Placement.Arrow) g.pose().mulPose(Axis.ZP.rotation(p.angle))
             drawIcon(g, p, color, alpha, size)
         }
