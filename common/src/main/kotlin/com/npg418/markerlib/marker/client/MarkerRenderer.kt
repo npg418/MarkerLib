@@ -48,8 +48,8 @@ object MarkerRenderer {
         val cam = mc.gameRenderer.mainCamera.position
         val w = g.guiWidth().toFloat()
         val h = g.guiHeight().toFloat()
-        val margin = ClientConfig.Rendering.edgeMargin
-        val bottom = margin + ClientConfig.Rendering.extraBottomMargin
+        val margin = ClientConfig.edgeMargin
+        val bottom = margin + ClientConfig.extraBottomMargin
 
         val ctx = ResolveContext(level, markers)
         val items = buildList {
@@ -100,50 +100,64 @@ object MarkerRenderer {
     }
 
     private fun draw(g: GuiGraphics, font: Font, item: RenderItem) = with(item) {
-        val baseSize = ClientConfig.Rendering.baseIconSize
-        val markerSize = marker.icon.size
-        val distScale = distanceScale(dist)
         val edge = angle != null
+        val size = ClientConfig.baseIconSize
+        val distScale = distanceScale(dist)
+        val lift =
+            marker.icon.size * distScale * (size / 2f + if (marker.showDistance) 2f + font.lineHeight * ClientConfig.Scale.textScale else 0f)
         val color = RGB(0xFFFFFF).lerp(marker.blend, RGB(marker.color))
-        val alpha = if (edge) 1f else crosshairAlpha(g, sx, sy)
+        val alpha = if (edge) 1f else crosshairAlpha(g, sx, sy - lift)
+        val argb = ((alpha * 255f).roundToInt() shl 24) or color.rgb
 
         g.pose().withStack {
             g.pose().translate(sx, sy, 0f)
-            g.pose().scale(markerSize, markerSize, 1f)
-            if (!edge) g.pose().scale(distScale, distScale, 1f)
-            if (marker.showDistance) {
-                val textScale = ClientConfig.Rendering.Scale.textScale
-                val textH = font.lineHeight * textScale
-                val argb = ((alpha * 255f).roundToInt() shl 24) or color.rgb
-                if (!edge) g.pose().translate(0f, -textH, 0f)
-                g.pose().withStack {
-                    g.pose().scale(textScale, textScale, 1f)
-                    g.drawCenteredString(font, "${dist.roundToInt()}m", 0, 0, argb)
-                }
-                g.pose().translate(0f, -(textH / 2f + 2f), 0f)
+            if (!edge) {
+                g.pose().translate(0f, -lift, 0f)
+                g.pose().scale(distScale, distScale, 1f)
             }
+            g.pose().scale(marker.icon.size, marker.icon.size, 1f)
+
+            if (marker.showDistance) drawText(g, font, "${dist.roundToInt()}m", size / 2f + 2f, argb)
+            if (marker.label != null) drawText(g, font, marker.label, -(size / 2f + 2f), argb, true)
+
             if (edge) g.pose().mulPose(Axis.ZP.rotation(angle))
-            g.pose().translate(-baseSize / 2f, -baseSize / 2f, 0f)
             RenderSystem.enableBlend()
             g.setColor(color.r / 255f, color.g / 255f, color.b / 255f, alpha)
-            g.blit(atlas, 0, 0, baseSize, baseSize, 0f, 0f, 1, 1, 1, 1)
+            g.pose().withStack {
+                g.pose().translate(-size / 2f, -size / 2f, 0f)
+                g.blit(atlas, 0, 0, size, size, 0f, 0f, 1, 1, 1, 1)
+            }
             g.setColor(1f, 1f, 1f, 1f)
         }
     }
 
-    private fun distanceScale(dist: Double): Float = with(ClientConfig.Rendering.Scale) {
+    private fun drawText(
+        g: GuiGraphics,
+        font: Font,
+        text: String,
+        y: Float,
+        color: Int,
+        bottomAnchor: Boolean = false
+    ) {
+        g.pose().withStack {
+            g.pose().translate(0f, y, 1f)
+            g.pose().scale(ClientConfig.Scale.textScale, ClientConfig.Scale.textScale, 0f)
+            g.drawCenteredString(font, text, 0, if (bottomAnchor) -font.lineHeight else 0, color)
+        }
+    }
+
+    private fun distanceScale(dist: Double): Float = with(ClientConfig.Scale) {
         val base = (refDistance / dist.coerceAtLeast(0.1)).toFloat().coerceIn(minScale, maxScale)
         if (scaleWithZoom) base * zoomFactor.coerceIn(1f, maxZoomScale) else base
     }
 
-    private fun crosshairAlpha(g: GuiGraphics, sx: Float, sy: Float): Float =
-        with(ClientConfig.Rendering.CrosshairFade) {
-            if (radius <= 0f) return 1f
-            val d = hypot(sx - g.guiWidth() / 2f, sy - g.guiHeight() / 2f)
-            val t = (d / radius).coerceIn(0f, 1f)
-            val s = t * t * (3f - 2f * t)
-            minAlpha + (1f - minAlpha) * s
-        }
+    private fun crosshairAlpha(g: GuiGraphics, sx: Float, sy: Float): Float = with(ClientConfig.CrosshairFade) {
+        if (radius <= 0f) return 1f
+        val d = hypot(sx - g.guiWidth() / 2f, sy - g.guiHeight() / 2f)
+        val t = (d / radius).coerceIn(0f, 1f)
+        val s = t * t * (3f - 2f * t)
+        minAlpha + (1f - minAlpha) * s
+    }
 
     private inline fun PoseStack.withStack(block: () -> Unit) {
         pushPose()
