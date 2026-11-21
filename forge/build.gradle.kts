@@ -14,9 +14,16 @@ legacyForge {
     }
 
     runs {
-        create("client") {
+        create("client1") {
             client()
             systemProperty("forge.enabledGameTestNamespaces", prop("mod_id").get())
+            programArguments.addAll("--username", "Dev1")
+        }
+
+        create("client2") {
+            client()
+            systemProperty("forge.enabledGameTestNamespaces", prop("mod_id").get())
+            programArguments.addAll("--username", "Dev2")
         }
 
         create("server") {
@@ -42,6 +49,8 @@ legacyForge {
             systemProperty("forge.logging.console.level", "debug")
 
             jvmArguments.addAll(hotswapJvmArgs)
+
+            gameDirectory = file("runs/$name")
 
             ideName = "Forge: Run $name"
         }

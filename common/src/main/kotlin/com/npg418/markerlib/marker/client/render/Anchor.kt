@@ -11,12 +11,12 @@ class Anchor(val position: Vec3, val uuid: UUID? = null)
 
 class AnchorResolver(level: ClientLevel, markers: Collection<Marker>) {
     private val dimension = level.dimension().location()
+    private val self = Minecraft.getInstance().player
     private val entities: Map<UUID, Entity> = run {
         val wanted: Set<UUID> = markers.flatMapTo(HashSet()) { marker ->
             marker.entitiesInDim(dimension).keys
         }
         if (wanted.isEmpty()) return@run emptyMap()
-        val self = Minecraft.getInstance().player
         buildMap {
             level.entitiesForRendering().forEach { if (it.uuid in wanted && it !== self) put(it.uuid, it) }
         }
@@ -24,7 +24,8 @@ class AnchorResolver(level: ClientLevel, markers: Collection<Marker>) {
 
     fun resolve(marker: Marker, partialTicks: Float): List<Anchor> = buildList {
         marker.positionsInDim(dimension).mapTo(this) { Anchor(it.pos) }
-        marker.entitiesInDim(dimension).mapTo(this) { (uuid, dPos) ->
+        marker.entitiesInDim(dimension).mapNotNullTo(this) { (uuid, dPos) ->
+            if (uuid == self?.uuid) return@mapNotNullTo null
             val e = entities[uuid]
             if (e == null) {
                 Anchor(dPos.pos, uuid)
