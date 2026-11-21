@@ -12,8 +12,8 @@ import java.util.*
 class MarkerService private constructor(val server: MinecraftServer) {
     private val markers = ServerMarkers.of(server)
 
-    private val entityResolver = CachedEntityResolver(server, false)
-    private val playerResolver = CachedEntityResolver(server, true)
+    private val entitiesResolver = CachedEntityResolver.Entities(server)
+    private val playersResolver = CachedEntityResolver.Players(server)
 
     private val lastSent = mutableMapOf<String, Set<UUID>>()
 
@@ -22,18 +22,19 @@ class MarkerService private constructor(val server: MinecraftServer) {
 
     private fun ServerEntry.isVisibleTo(player: ServerPlayer): Boolean {
         val selector = visibleTo ?: return true
-        return player.uuid in (playerResolver.resolve(selector) ?: emptySet())
+        return player.uuid in (playersResolver.resolve(selector) ?: emptySet())
     }
 
     private fun ServerEntry.resolveEntities(): ServerEntry {
         val selector = entitySelector ?: return this
-        val found = entityResolver.resolve(selector) ?: return this
-        return if (found == marker.entities) this else copy(marker = marker.copy(entities = found))
+        val found = entitiesResolver.resolve(selector) ?: return this
+        if (marker.entities == found) return this
+        return copy(marker = marker.copy(entities = found))
     }
 
     fun syncTo(player: ServerPlayer) {
-        playerResolver.invalidate()
-        entityResolver.invalidate()
+        playersResolver.invalidate()
+        entitiesResolver.invalidate()
         val visible = markers.all.filter { it.isVisibleTo(player) }.map { it.resolveEntities().marker }
         Platform.sendPacket(player, SyncPacket(visible))
     }
@@ -42,7 +43,7 @@ class MarkerService private constructor(val server: MinecraftServer) {
     fun put(entry: ServerEntry) {
         val resolved = entry.resolveEntities()
         markers.put(resolved)
-        val now = resolved.visibleTo?.let { playerResolver.resolve(it) }
+        val now = resolved.visibleTo?.let { playersResolver.resolve(it) }
         if (now != null) lastSent[resolved.id] = now else lastSent.remove(resolved.id)
         server.playerList.players.forEach {
             Platform.sendPacket(
@@ -78,8 +79,8 @@ class MarkerService private constructor(val server: MinecraftServer) {
         if (!periodic && !onDemand) return
         dirty = false
         lastRefresh = now
-        playerResolver.invalidate()
-        entityResolver.invalidate()
+        playersResolver.invalidate()
+        entitiesResolver.invalidate()
         markers.all.toList().forEach {
             refreshVisibleTo(it)
             refreshEntities(it)
@@ -88,7 +89,7 @@ class MarkerService private constructor(val server: MinecraftServer) {
 
     fun refreshVisibleTo(entry: ServerEntry) {
         val selector = entry.visibleTo ?: return
-        val now = playerResolver.resolve(selector) ?: return
+        val now = playersResolver.resolve(selector) ?: return
         val old = lastSent.put(entry.id, now) ?: return
         (now - old).forEach {
             server.playerList.getPlayer(it)?.let { p -> Platform.sendPacket(p, AddPacket(entry.marker)) }
@@ -109,8 +110,8 @@ class MarkerService private constructor(val server: MinecraftServer) {
 
     private fun onServerStopped() {
         lastSent.clear()
-        playerResolver.invalidate()
-        entityResolver.invalidate()
+        playersResolver.invalidate()
+        entitiesResolver.invalidate()
         dirty = false
     }
 

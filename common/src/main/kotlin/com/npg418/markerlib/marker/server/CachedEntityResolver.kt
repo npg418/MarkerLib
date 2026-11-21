@@ -1,32 +1,47 @@
 package com.npg418.markerlib.marker.server
 
 import com.mojang.brigadier.StringReader
+import com.npg418.markerlib.marker.common.DimensionPos
+import net.minecraft.commands.CommandSourceStack
 import net.minecraft.commands.arguments.EntityArgument
 import net.minecraft.commands.arguments.selector.EntitySelector
 import net.minecraft.server.MinecraftServer
+import net.minecraft.world.entity.Entity
 import java.util.*
 
-class CachedEntityResolver internal constructor(val server: MinecraftServer, val playerOnly: Boolean) {
+sealed class CachedEntityResolver<R>(val server: MinecraftServer) {
     private val parsed = mutableMapOf<String, EntitySelector>()
-    private val resolved = mutableMapOf<String, Set<UUID>?>()
+    private val results = mutableMapOf<String, R?>()
 
-    fun invalidate() = resolved.clear()
+    fun invalidate() = results.clear()
 
-    fun resolve(selector: String): Set<UUID>? {
-        if (resolved.containsKey(selector)) return resolved[selector]
-        return evaluate(selector).also { resolved[selector] = it }
+    abstract fun argument(): EntityArgument
+    abstract fun EntitySelector.find(source: CommandSourceStack): List<Entity>
+    abstract fun collect(entities: List<Entity>): R
+
+    fun resolve(selector: String): R? = if (results.containsKey(selector)) {
+        results[selector]
+    } else {
+        runCatching {
+            val s = parsed.getOrPut(selector) { argument().parse(StringReader(selector)) }
+            collect(s.find(server.createCommandSourceStack()))
+        }.getOrNull().also { results[selector] = it }
     }
 
-    private fun evaluate(selector: String): Set<UUID>? {
-        val s = parsed[selector] ?: parse(selector)?.also { parsed[selector] = it } ?: return null
-        return runCatching {
-            val source = server.createCommandSourceStack()
-            (if (playerOnly) s.findPlayers(source) else s.findEntities(source)).map { it.uuid }.toSet()
-        }.getOrNull()
+    class Players(server: MinecraftServer) : CachedEntityResolver<Set<UUID>>(server) {
+        override fun argument(): EntityArgument = EntityArgument.players()
+        override fun EntitySelector.find(source: CommandSourceStack): List<Entity> = findPlayers(source)
+        override fun collect(entities: List<Entity>): Set<UUID> = entities.map { it.uuid }.toSet()
     }
 
-    private fun parse(selector: String): EntitySelector? = runCatching {
-        val argument = if (playerOnly) EntityArgument.players() else EntityArgument.entities()
-        argument.parse(StringReader(selector))
-    }.getOrNull()
+    class Entities(server: MinecraftServer) : CachedEntityResolver<Map<UUID, DimensionPos>>(server) {
+        override fun argument(): EntityArgument = EntityArgument.entities()
+        override fun EntitySelector.find(source: CommandSourceStack): List<Entity> = findEntities(source)
+        override fun collect(entities: List<Entity>): Map<UUID, DimensionPos> = entities.associate {
+            it.uuid to DimensionPos(
+                it.position().add(0.0, it.bbHeight.toDouble(), 0.0),
+                it.level().dimension().location(),
+            )
+        }
+    }
 }

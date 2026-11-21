@@ -9,13 +9,14 @@ import net.minecraft.world.phys.Vec3
 import java.util.*
 
 class Anchor(val pos: Vec3, val entity: Entity? = null) {
-    fun iconPos(icon: MarkerIcon): Vec3 =
-        if (entity == null) pos else pos.add(0.0, entity.bbHeight + icon.entityIconOffset, 0.0)
+    fun iconPos(icon: MarkerIcon): Vec3 = if (entity == null) pos else pos.add(0.0, icon.entityIconOffset, 0.0)
 }
 
-class AnchorResolver(level: ClientLevel, markers: Collection<Marker>) {
+class AnchorResolver(private val level: ClientLevel, markers: Collection<Marker>) {
     private val entities: Map<UUID, Entity> = run {
-        val wanted = markers.flatMapTo(HashSet()) { it.entities }
+        val wanted: Set<UUID> = markers.flatMapTo(HashSet()) { marker ->
+            marker.entities.filter { it.value.dimension == level.dimension().location() }.map { it.key }
+        }
         if (wanted.isEmpty()) return@run emptyMap()
         val self = Minecraft.getInstance().player
         buildMap {
@@ -24,9 +25,9 @@ class AnchorResolver(level: ClientLevel, markers: Collection<Marker>) {
     }
 
     fun resolve(marker: Marker, partialTicks: Float): List<Anchor> = buildList {
-        marker.positions.mapTo(this) { Anchor(it) }
-        marker.entities.mapNotNullTo(this) { id ->
-            entities[id]?.let { Anchor(it.getPosition(partialTicks), it) }
+        marker.positions.filter { it.dimension == level.dimension().location() }.mapTo(this) { Anchor(it.pos) }
+        marker.entities.mapNotNullTo(this) { (id, _) ->
+            entities[id]?.let { Anchor(it.getPosition(partialTicks).add(0.0, it.bbHeight.toDouble(), 0.0), it) }
         }
     }
 }
