@@ -36,11 +36,11 @@ object MarkerRenderer {
         val items = buildList {
             for (marker in markers) {
                 for (anchor in resolver.resolve(marker, partialTicks)) {
-                    val iconPos = anchor.position.apply {
-                        if (anchor.uuid !=
-                            null
-                        ) {
-                            add(0.0, marker.icon.entityIconOffset, 0.0)
+                    val iconPos = anchor.position.let {
+                        if (anchor.uuid != null) {
+                            it.add(0.0, marker.icon.entityIconOffset, 0.0)
+                        } else {
+                            it
                         }
                     }
                     val projected = Projector.project(iconPos, camera, screen.w, screen.h)
