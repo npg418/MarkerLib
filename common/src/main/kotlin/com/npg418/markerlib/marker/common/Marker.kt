@@ -3,6 +3,7 @@ package com.npg418.markerlib.marker.common
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
 import net.minecraft.network.FriendlyByteBuf
+import net.minecraft.resources.ResourceLocation
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
 
@@ -20,6 +21,9 @@ data class Marker(
     init {
         require(blend in 0f..1f) { "blend must be in 0..1 but was $blend" }
     }
+
+    fun positionsInDim(dimension: ResourceLocation) = positions.filter { it.dimension == dimension }
+    fun entitiesInDim(dimension: ResourceLocation) = entities.filterValues { it.dimension == dimension }
 
     fun write(buf: FriendlyByteBuf) {
         buf.writeUtf(id)

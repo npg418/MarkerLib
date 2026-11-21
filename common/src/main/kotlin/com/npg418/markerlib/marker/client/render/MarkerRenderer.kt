@@ -32,16 +32,21 @@ object MarkerRenderer {
             margin + ClientConfig.extraBottomMargin,
         )
         val resolver = AnchorResolver(level, markers)
-        val playerPos = player.getPosition(partialTicks)
 
         val items = buildList {
             for (marker in markers) {
                 for (anchor in resolver.resolve(marker, partialTicks)) {
-                    val iconPos = anchor.iconPos(marker.icon)
+                    val iconPos = anchor.position.apply {
+                        if (anchor.uuid !=
+                            null
+                        ) {
+                            add(0.0, marker.icon.entityIconOffset, 0.0)
+                        }
+                    }
                     val projected = Projector.project(iconPos, camera, screen.w, screen.h)
                     val placement = place(marker, projected, screen, mc.font) { isOccluded(player, camera, iconPos) }
                         ?: continue
-                    add(RenderItem(marker, anchor, placement, playerPos.distanceTo(anchor.pos)))
+                    add(RenderItem(marker, anchor, placement, camera.distanceTo(anchor.position)))
                 }
             }
         }.sortedWith(

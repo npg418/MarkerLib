@@ -26,7 +26,7 @@ class MarkerService private constructor(val server: MinecraftServer) {
     }
 
     private fun ServerEntry.resolveEntities(): ServerEntry {
-        val selector = entitySelector ?: return this
+        val selector = entitySelector ?: return copy(marker = marker.copy(entities = emptyMap()))
         val found = entitiesResolver.resolve(selector) ?: return this
         if (marker.entities == found) return this
         return copy(marker = marker.copy(entities = found))
