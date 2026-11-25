@@ -1,7 +1,6 @@
-package com.npg418.markerlib.marker.server
+package com.npg418.markerlib.server
 
 import com.npg418.markerlib.common.Marker
-import com.npg418.markerlib.server.ServerEntry
 import net.minecraft.nbt.NbtOps
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test

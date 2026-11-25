@@ -7,7 +7,6 @@ import com.npg418.markerlib.readVec3
 import com.npg418.markerlib.writeVec3
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.resources.ResourceLocation
-import net.minecraft.world.level.Level
 import net.minecraft.world.phys.Vec3
 
 data class DimensionalPosition(val pos: Vec3, val dimension: ResourceLocation = OVERWORLD) {
@@ -21,7 +20,7 @@ data class DimensionalPosition(val pos: Vec3, val dimension: ResourceLocation = 
     override fun toString(): String = pos.toString() + if (dimension != OVERWORLD) "@$dimension" else ""
 
     companion object {
-        private val OVERWORLD = Level.OVERWORLD.location()
+        private val OVERWORLD = ResourceLocation("overworld")
 
         val CODEC: Codec<DimensionalPosition> = RecordCodecBuilder.create { i ->
             i.group(

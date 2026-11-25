@@ -1,6 +1,5 @@
-package com.npg418.markerlib.marker.common
+package com.npg418.markerlib.common
 
-import com.npg418.markerlib.common.*
 import io.netty.buffer.Unpooled
 import net.minecraft.network.FriendlyByteBuf
 import org.junit.jupiter.api.Assertions.assertEquals
