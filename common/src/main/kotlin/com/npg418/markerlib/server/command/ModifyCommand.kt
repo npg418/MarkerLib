@@ -23,9 +23,17 @@ object ModifyCommand {
                     "icon",
                     ResourceLocationArgument.id(),
                     ResourceLocationArgument::getId,
-                ) { copy(icon = icon.copy(iconTexture = it)) }.then(
+                ) { copy(icon = icon.copy(iconTexture = it, playerFace = false)) }.then(
                     literal("default").executes { ctx ->
-                        updateMarker(ctx) { copy(icon = icon.copy(iconTexture = MarkerIcon.DEFAULT_ICON)) }
+                        updateMarker(ctx) {
+                            copy(
+                                icon = icon.copy(iconTexture = MarkerIcon.DEFAULT_ICON, playerFace = false),
+                            )
+                        }
+                    },
+                ).then(
+                    literal("face").executes { ctx ->
+                        updateMarker(ctx) { copy(icon = icon.copy(playerFace = true)) }
                     },
                 ),
             ).then(
@@ -33,10 +41,16 @@ object ModifyCommand {
                     "arrow",
                     ResourceLocationArgument.id(),
                     ResourceLocationArgument::getId,
-                    { copy(icon = icon.copy(arrowTexture = null)) },
+                    { copy(icon = icon.copy(arrowTexture = null, arrowFace = false)) },
                 ) { copy(icon = icon.copy(arrowTexture = it)) }.then(
                     literal("default").executes { ctx ->
-                        updateMarker(ctx) { copy(icon = icon.copy(arrowTexture = MarkerIcon.DEFAULT_ARROW)) }
+                        updateMarker(ctx) {
+                            copy(icon = icon.copy(arrowTexture = MarkerIcon.DEFAULT_ARROW, arrowFace = false))
+                        }
+                    },
+                ).then(
+                    literal("face").executes { ctx ->
+                        updateMarker(ctx) { copy(icon = icon.copy(arrowFace = true)) }
                     },
                 ),
             ).then(

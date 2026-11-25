@@ -11,7 +11,7 @@ import net.minecraft.world.phys.Vec3
 internal class MarkPlacer(private val screen: Screen, private val viewer: Player, private val font: Font) {
     fun place(marker: Marker, target: Vec3): Placement? {
         val p = Camera.project(target, screen)
-        val hasArrow = marker.icon.arrowTexture != null && !marker.hideByBlock
+        val hasArrow = marker.icon.hasArrow && !marker.hideByBlock
         val fitsScreen = !hasArrow || screen.contains(p.x, p.y)
 
         return when {

@@ -5,8 +5,10 @@ import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.math.Axis
 import com.npg418.markerlib.common.Marker
 import com.npg418.markerlib.config.ClientConfig
+import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.Font
 import net.minecraft.client.gui.GuiGraphics
+import net.minecraft.client.gui.components.PlayerFaceRenderer
 import net.minecraft.resources.ResourceLocation
 import kotlin.math.hypot
 import kotlin.math.max
@@ -34,17 +36,21 @@ internal class MarkPainter(private val g: GuiGraphics, private val font: Font, p
             translate(p.x, p.y - lift, 0f)
             scale(distScale, distScale, 1f)
             drawLabels(mark, alpha, clampToScreen = false)
-            drawIcon(marker, marker.icon.iconTexture, alpha)
+            val skin = if (marker.icon.playerFace) faceSkin(mark) else null
+            if (skin != null) drawFace(marker, skin, alpha) else drawIcon(marker, marker.icon.iconTexture, alpha)
         }
     }
 
     private fun paintAtEdge(mark: Mark, p: Placement.AtEdge) {
         val marker = mark.marker
-        val texture = marker.icon.arrowTexture ?: return
+        val skin = if (marker.icon.arrowFace) faceSkin(mark) else null
+        val texture = marker.icon.arrowTexture
+        if (skin == null && texture == null) return
+
         withPose {
             translate(p.x, p.y, 0f)
             drawLabels(mark, 1f, clampToScreen = true, centerX = p.x)
-            drawIcon(marker, texture, 1f, p.angle)
+            if (skin != null) drawFace(marker, skin, 1f) else drawIcon(marker, texture!!, 1f, p.angle)
         }
     }
 
@@ -87,7 +93,7 @@ internal class MarkPainter(private val g: GuiGraphics, private val font: Font, p
 
     private fun drawIcon(marker: Marker, texture: ResourceLocation, alpha: Float, angle: Float = 0f) {
         val size = ClientConfig.baseIconSize
-        val tint = RGB(0xFFFFFF).lerp(marker.blend, RGB(marker.color))
+        val tint = tintOf(marker)
 
         RenderSystem.enableBlend()
         g.setColor(tint.r / 255f, tint.g / 255f, tint.b / 255f, alpha)
@@ -98,6 +104,24 @@ internal class MarkPainter(private val g: GuiGraphics, private val font: Font, p
             g.blit(texture, 0, 0, size, size, 0f, 0f, 1, 1, 1, 1)
         }
         g.setColor(1f, 1f, 1f, 1f)
+    }
+
+    private fun faceSkin(mark: Mark): ResourceLocation? =
+        mark.target.uuid?.let { Minecraft.getInstance().connection?.getPlayerInfo(it)?.skinLocation }
+
+    private fun drawFace(marker: Marker, skin: ResourceLocation, alpha: Float) {
+        val size = ClientConfig.baseIconSize
+        val frame = ((alpha * 255f).roundToInt() shl 24) or tintOf(marker).rgb
+
+        RenderSystem.enableBlend()
+        withPose {
+            scale(marker.icon.size, marker.icon.size, 1f)
+            translate(-size / 2f, -size / 2f, 0f)
+            g.fill(-1, -1, size + 1, size + 1, frame)
+            g.setColor(1f, 1f, 1f, alpha)
+            PlayerFaceRenderer.draw(g, skin, 0, 0, size)
+            g.setColor(1f, 1f, 1f, 1f)
+        }
     }
 
     private fun distanceScale(distance: Double): Float = with(ClientConfig.Scale) {
@@ -111,6 +135,8 @@ internal class MarkPainter(private val g: GuiGraphics, private val font: Font, p
         val smooth = t * t * (3f - 2f * t)
         minAlpha + (1f - minAlpha) * smooth
     }
+
+    private fun tintOf(marker: Marker) = RGB(0xFFFFFF).lerp(marker.blend, RGB(marker.color))
 
     private inline fun withPose(block: PoseStack.() -> Unit) {
         val pose = g.pose()

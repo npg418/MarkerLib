@@ -12,16 +12,22 @@ data class MarkerIcon(
     val arrowTexture: ResourceLocation? = null,
     val size: Float = 1f,
     val entityIconOffset: Double = 0.2,
+    val playerFace: Boolean = false,
+    val arrowFace: Boolean = false,
 ) {
     init {
         require(size in MIN_SIZE..MAX_SIZE) { "size must be in $MIN_SIZE..$MAX_SIZE but was $size" }
     }
+
+    val hasArrow get() = arrowTexture != null || arrowFace
 
     fun write(buf: FriendlyByteBuf) {
         buf.writeResourceLocation(iconTexture)
         buf.writeNullable(arrowTexture) { b, a -> b.writeResourceLocation(a) }
         buf.writeFloat(size)
         buf.writeDouble(entityIconOffset)
+        buf.writeBoolean(playerFace)
+        buf.writeBoolean(arrowFace)
     }
 
     companion object {
@@ -37,8 +43,10 @@ data class MarkerIcon(
                 ResourceLocation.CODEC.optionalFieldOf("arrowIcon").forGetter { Optional.ofNullable(it.arrowTexture) },
                 Codec.floatRange(MIN_SIZE, MAX_SIZE).fieldOf("size").forGetter { it.size },
                 Codec.DOUBLE.fieldOf("entityIconOffset").forGetter { it.entityIconOffset },
-            ).apply(i) { icon, arrowIcon, size, entityIconOffset ->
-                MarkerIcon(icon, arrowIcon.getOrNull(), size, entityIconOffset)
+                Codec.BOOL.fieldOf("playerFace").forGetter { it.playerFace },
+                Codec.BOOL.fieldOf("arrowFace").forGetter { it.arrowFace },
+            ).apply(i) { icon, arrowIcon, size, entityIconOffset, playerFace, arrowFace ->
+                MarkerIcon(icon, arrowIcon.getOrNull(), size, entityIconOffset, playerFace, arrowFace)
             }
         }
 
@@ -47,6 +55,8 @@ data class MarkerIcon(
             arrowTexture = buf.readNullable { it.readResourceLocation() },
             size = buf.readFloat(),
             entityIconOffset = buf.readDouble(),
+            playerFace = buf.readBoolean(),
+            arrowFace = buf.readBoolean(),
         )
     }
 }
