@@ -1,4 +1,4 @@
-package com.npg418.markerlib.marker.client
+package com.npg418.markerlib.marker.client.render
 
 import net.minecraft.util.Mth
 

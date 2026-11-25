@@ -18,12 +18,9 @@ fun FriendlyByteBuf.readVec3(): Vec3 = Vec3(
     readDouble(),
 )
 
-fun Vec3.format(scale: Int = 3, stripZeros: Boolean = true) =
-    "${num(x, scale, stripZeros)} ${num(y, scale, stripZeros)} ${num(z, scale, stripZeros)}"
+fun Vec3.format(scale: Int = 3) = "${x.num(scale)} ${y.num(scale)} ${z.num(scale)}"
 
-private fun num(d: Double, scale: Int, stripZeros: Boolean) =
-    BigDecimal.valueOf(d).setScale(scale, RoundingMode.HALF_UP).let { if (stripZeros) it.stripTrailingZeros() else it }
-        .toPlainString()
+private fun Double.num(scale: Int) = BigDecimal.valueOf(this).setScale(scale, RoundingMode.HALF_UP).toPlainString()
 
 private const val VEC3_EPSILON = 0.001
 fun Vec3.isClose(other: Vec3, epsilon: Double = VEC3_EPSILON) = distanceToSqr(other) <= epsilon * epsilon

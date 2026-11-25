@@ -10,13 +10,15 @@ internal object LabelTemplate {
 
     private fun playerName(uuid: UUID) = Minecraft.getInstance().connection?.getPlayerInfo(uuid)?.profile?.name
 
-    fun expand(template: String, item: RenderItem): String = TOKEN.replace(template) {
-        when (it.groupValues[1]) {
-            "name" -> item.anchor.uuid?.let { uuid -> playerName(uuid) } ?: it.value
-            "dist" -> item.dist.roundToInt().toString()
-            "pos" -> item.anchor.position.format(0)
-            "position" -> item.anchor.position.format(stripZeros = false)
-            else -> it.value
+    fun expand(template: String, mark: Mark): String {
+        if ('{' !in template) return template
+        return TOKEN.replace(template) {
+            when (it.groupValues[1]) {
+                "name" -> mark.target.uuid?.let(::playerName) ?: it.value
+                "distance" -> mark.distance.roundToInt().toString()
+                "position" -> mark.target.position.format(0)
+                else -> it.value
+            }
         }
     }
 }

@@ -1,7 +1,7 @@
 package com.npg418.markerlib.marker.server.command
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
-import com.npg418.markerlib.marker.common.DimensionPos
+import com.npg418.markerlib.marker.common.DimensionalPosition
 import com.npg418.markerlib.marker.format
 import com.npg418.markerlib.marker.isClose
 import com.npg418.markerlib.marker.server.MarkerService
@@ -23,7 +23,12 @@ object TargetCommand {
         },
     ).then(
         positionsAugmentNode { ctx, i ->
-            updateMarker(ctx) { copy(positions = positions + ctx.positions(i).map { DimensionPos(it, ctx.dimension) }) }
+            updateMarker(ctx) {
+                copy(
+                    positions =
+                    positions + ctx.positions(i).map { DimensionalPosition(it, ctx.dimension) },
+                )
+            }
         },
     )
 
@@ -36,7 +41,7 @@ object TargetCommand {
             updateMarker(ctx) {
                 val rest = positions.filterNot { existing ->
                     ctx.positions(i).any { specified ->
-                        existing.isClose(DimensionPos(specified, ctx.dimension))
+                        existing.isClose(DimensionalPosition(specified, ctx.dimension))
                     }
                 }
                 if (rest.size == positions.size) throw CommandErrors.NO_SUCH_POINT.create()

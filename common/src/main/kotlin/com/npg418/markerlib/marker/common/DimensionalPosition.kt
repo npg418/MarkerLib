@@ -10,27 +10,29 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.level.Level
 import net.minecraft.world.phys.Vec3
 
-data class DimensionPos(val pos: Vec3, val dimension: ResourceLocation = OVERWORLD) {
+data class DimensionalPosition(val pos: Vec3, val dimension: ResourceLocation = OVERWORLD) {
     fun write(buf: FriendlyByteBuf) {
         buf.writeVec3(pos)
         buf.writeNullable(dimension.takeIf { it != OVERWORLD }) { b, d -> b.writeResourceLocation(d) }
     }
 
-    fun isClose(other: DimensionPos) = dimension == other.dimension && pos.isClose(other.pos)
+    fun isClose(other: DimensionalPosition) = dimension == other.dimension && pos.isClose(other.pos)
+
+    override fun toString(): String = pos.toString() + if (dimension != OVERWORLD) "@$dimension" else ""
 
     companion object {
         private val OVERWORLD = Level.OVERWORLD.location()
 
-        val CODEC: Codec<DimensionPos> = RecordCodecBuilder.create { i ->
+        val CODEC: Codec<DimensionalPosition> = RecordCodecBuilder.create { i ->
             i.group(
                 Vec3.CODEC.fieldOf("pos").forGetter { it.pos },
                 ResourceLocation.CODEC.optionalFieldOf("dimension", OVERWORLD).forGetter { it.dimension },
             ).apply(i) { pos, dimension ->
-                DimensionPos(pos, dimension)
+                DimensionalPosition(pos, dimension)
             }
         }
 
-        fun read(buf: FriendlyByteBuf) = DimensionPos(
+        fun read(buf: FriendlyByteBuf) = DimensionalPosition(
             pos = buf.readVec3(),
             dimension = buf.readNullable { it.readResourceLocation() } ?: OVERWORLD,
         )

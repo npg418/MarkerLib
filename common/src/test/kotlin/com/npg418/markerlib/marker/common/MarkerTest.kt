@@ -32,7 +32,7 @@ class MarkerTest {
             icon = MarkerIcon(size = 1.5f, entityIconOffset = 1.0),
             color = 0x00FF00,
             topText = "{name}",
-            bottomText = "{dist}m"
+            bottomText = "{dist}m",
         )
     }
 }

@@ -3,14 +3,13 @@ package com.npg418.markerlib.marker.common
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
 import net.minecraft.network.FriendlyByteBuf
-import net.minecraft.resources.ResourceLocation
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
 
 data class Marker(
     val id: String,
-    val positions: List<DimensionPos> = emptyList(),
-    val entities: Map<UUID, DimensionPos> = emptyMap(),
+    val positions: List<DimensionalPosition> = emptyList(),
+    val entities: Map<UUID, DimensionalPosition> = emptyMap(),
     val icon: MarkerIcon = MarkerIcon(),
     val color: Int = 0xFF3030,
     val blend: Float = 1f,
@@ -21,9 +20,6 @@ data class Marker(
     init {
         require(blend in 0f..1f) { "blend must be in 0..1 but was $blend" }
     }
-
-    fun positionsInDim(dimension: ResourceLocation) = positions.filter { it.dimension == dimension }
-    fun entitiesInDim(dimension: ResourceLocation) = entities.filterValues { it.dimension == dimension }
 
     fun write(buf: FriendlyByteBuf) {
         buf.writeUtf(id)
@@ -41,7 +37,7 @@ data class Marker(
         val CODEC: Codec<Marker> = RecordCodecBuilder.create { i ->
             i.group(
                 Codec.STRING.fieldOf("id").forGetter { it.id },
-                DimensionPos.CODEC.listOf().fieldOf("positions").forGetter { it.positions },
+                DimensionalPosition.CODEC.listOf().fieldOf("positions").forGetter { it.positions },
                 MarkerIcon.CODEC.fieldOf("icon").forGetter { it.icon },
                 Codec.intRange(0x000000, 0xFFFFFF).fieldOf("color").forGetter { it.color },
                 Codec.floatRange(0f, 1f).fieldOf("blend").forGetter { it.blend },
@@ -65,8 +61,8 @@ data class Marker(
 
         fun read(buf: FriendlyByteBuf) = Marker(
             id = buf.readUtf(),
-            positions = buf.readList { DimensionPos.read(it) },
-            entities = buf.readMap({ it.readUUID() }, { DimensionPos.read(it) }),
+            positions = buf.readList { DimensionalPosition.read(it) },
+            entities = buf.readMap({ it.readUUID() }, { DimensionalPosition.read(it) }),
             icon = MarkerIcon.read(buf),
             color = buf.readInt() and 0xFFFFFF,
             blend = buf.readFloat(),
