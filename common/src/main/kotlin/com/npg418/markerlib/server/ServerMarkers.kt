@@ -1,4 +1,4 @@
-package com.npg418.markerlib.marker.server
+package com.npg418.markerlib.server
 
 import com.npg418.markerlib.MarkerLib
 import net.minecraft.nbt.CompoundTag

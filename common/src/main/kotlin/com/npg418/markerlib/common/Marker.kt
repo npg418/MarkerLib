@@ -1,4 +1,4 @@
-package com.npg418.markerlib.marker.common
+package com.npg418.markerlib.common
 
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder

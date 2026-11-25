@@ -1,10 +1,10 @@
-package com.npg418.markerlib.marker.server
+package com.npg418.markerlib.server
 
 import com.npg418.markerlib.Platform
+import com.npg418.markerlib.common.AddPacket
+import com.npg418.markerlib.common.RemovePacket
+import com.npg418.markerlib.common.SyncPacket
 import com.npg418.markerlib.config.ServerConfig
-import com.npg418.markerlib.marker.common.AddPacket
-import com.npg418.markerlib.marker.common.RemovePacket
-import com.npg418.markerlib.marker.common.SyncPacket
 import net.minecraft.server.MinecraftServer
 import net.minecraft.server.level.ServerPlayer
 import java.util.*

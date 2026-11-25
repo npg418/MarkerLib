@@ -1,10 +1,10 @@
-package com.npg418.markerlib.marker.client.render
+package com.npg418.markerlib.client.render
 
 import com.mojang.blaze3d.systems.RenderSystem
 import com.mojang.blaze3d.vertex.PoseStack
 import com.mojang.math.Axis
+import com.npg418.markerlib.common.Marker
 import com.npg418.markerlib.config.ClientConfig
-import com.npg418.markerlib.marker.common.Marker
 import net.minecraft.client.gui.Font
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.resources.ResourceLocation

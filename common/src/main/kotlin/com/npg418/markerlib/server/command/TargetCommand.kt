@@ -1,10 +1,10 @@
-package com.npg418.markerlib.marker.server.command
+package com.npg418.markerlib.server.command
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
-import com.npg418.markerlib.marker.common.DimensionalPosition
-import com.npg418.markerlib.marker.format
-import com.npg418.markerlib.marker.isClose
-import com.npg418.markerlib.marker.server.MarkerService
+import com.npg418.markerlib.common.DimensionalPosition
+import com.npg418.markerlib.format
+import com.npg418.markerlib.isClose
+import com.npg418.markerlib.server.MarkerService
 import net.minecraft.commands.CommandSourceStack
 import net.minecraft.commands.Commands.argument
 import net.minecraft.commands.Commands.literal

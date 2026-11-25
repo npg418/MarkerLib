@@ -1,4 +1,4 @@
-package com.npg418.markerlib.marker
+package com.npg418.markerlib
 
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.world.phys.Vec3

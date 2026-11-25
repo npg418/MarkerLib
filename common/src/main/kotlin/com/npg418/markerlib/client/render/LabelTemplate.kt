@@ -1,6 +1,6 @@
-package com.npg418.markerlib.marker.client.render
+package com.npg418.markerlib.client.render
 
-import com.npg418.markerlib.marker.format
+import com.npg418.markerlib.format
 import net.minecraft.client.Minecraft
 import java.util.*
 import kotlin.math.roundToInt

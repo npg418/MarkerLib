@@ -1,11 +1,11 @@
 package com.npg418.markerlib
 
+import com.npg418.markerlib.client.ClientMarkers
+import com.npg418.markerlib.client.render.MarkerRenderer
 import com.npg418.markerlib.datagen.ModItemModelProvider
 import com.npg418.markerlib.datagen.ModLanguageProvider
-import com.npg418.markerlib.marker.client.ClientMarkers
-import com.npg418.markerlib.marker.client.render.MarkerRenderer
-import com.npg418.markerlib.marker.server.MarkerService
-import com.npg418.markerlib.marker.server.command.MarkerCommand
+import com.npg418.markerlib.server.MarkerService
+import com.npg418.markerlib.server.command.MarkerCommand
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.level.Level
 import net.minecraftforge.api.distmarker.Dist

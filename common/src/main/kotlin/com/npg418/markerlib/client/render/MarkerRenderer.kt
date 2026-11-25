@@ -1,6 +1,6 @@
-package com.npg418.markerlib.marker.client.render
+package com.npg418.markerlib.client.render
 
-import com.npg418.markerlib.marker.common.Marker
+import com.npg418.markerlib.common.Marker
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.GuiGraphics
 import org.joml.Matrix4f

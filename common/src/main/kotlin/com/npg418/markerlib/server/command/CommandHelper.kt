@@ -1,4 +1,4 @@
-package com.npg418.markerlib.marker.server.command
+package com.npg418.markerlib.server.command
 
 import com.mojang.brigadier.arguments.StringArgumentType.getString
 import com.mojang.brigadier.arguments.StringArgumentType.word
@@ -7,9 +7,9 @@ import com.mojang.brigadier.context.CommandContext
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType
 import com.mojang.brigadier.suggestion.SuggestionProvider
-import com.npg418.markerlib.marker.common.Marker
-import com.npg418.markerlib.marker.server.MarkerService
-import com.npg418.markerlib.marker.server.ServerEntry
+import com.npg418.markerlib.common.Marker
+import com.npg418.markerlib.server.MarkerService
+import com.npg418.markerlib.server.ServerEntry
 import net.minecraft.commands.CommandSourceStack
 import net.minecraft.commands.Commands.argument
 import net.minecraft.commands.SharedSuggestionProvider

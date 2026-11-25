@@ -1,10 +1,10 @@
-package com.npg418.markerlib.marker.common
+package com.npg418.markerlib.common
 
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
-import com.npg418.markerlib.marker.isClose
-import com.npg418.markerlib.marker.readVec3
-import com.npg418.markerlib.marker.writeVec3
+import com.npg418.markerlib.isClose
+import com.npg418.markerlib.readVec3
+import com.npg418.markerlib.writeVec3
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.level.Level

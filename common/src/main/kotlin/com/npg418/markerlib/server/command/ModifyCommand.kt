@@ -1,4 +1,4 @@
-package com.npg418.markerlib.marker.server.command
+package com.npg418.markerlib.server.command
 
 import com.mojang.brigadier.arguments.*
 import com.mojang.brigadier.arguments.BoolArgumentType.bool
@@ -7,8 +7,8 @@ import com.mojang.brigadier.arguments.FloatArgumentType.floatArg
 import com.mojang.brigadier.arguments.StringArgumentType.greedyString
 import com.mojang.brigadier.arguments.StringArgumentType.word
 import com.mojang.brigadier.builder.LiteralArgumentBuilder
-import com.npg418.markerlib.marker.common.Marker
-import com.npg418.markerlib.marker.common.MarkerIcon
+import com.npg418.markerlib.common.Marker
+import com.npg418.markerlib.common.MarkerIcon
 import net.minecraft.commands.CommandSourceStack
 import net.minecraft.commands.Commands.argument
 import net.minecraft.commands.Commands.literal

@@ -1,4 +1,4 @@
-package com.npg418.markerlib.marker.common
+package com.npg418.markerlib.common
 
 import net.minecraft.network.FriendlyByteBuf
 

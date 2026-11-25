@@ -1,6 +1,6 @@
-package com.npg418.markerlib.marker.client.render
+package com.npg418.markerlib.client.render
 
-import com.npg418.markerlib.marker.common.Marker
+import com.npg418.markerlib.common.Marker
 import net.minecraft.client.gui.Font
 import net.minecraft.core.BlockPos
 import net.minecraft.world.entity.player.Player

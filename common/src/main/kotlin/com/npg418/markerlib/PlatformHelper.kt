@@ -1,6 +1,6 @@
 package com.npg418.markerlib
 
-import com.npg418.markerlib.marker.common.MarkerPacket
+import com.npg418.markerlib.common.MarkerPacket
 import net.minecraft.server.level.ServerPlayer
 import java.util.*
 

@@ -1,11 +1,11 @@
 package com.npg418.markerlib.network
 
 import com.npg418.markerlib.MarkerLib
-import com.npg418.markerlib.marker.client.ClientMarkers
-import com.npg418.markerlib.marker.common.AddPacket
-import com.npg418.markerlib.marker.common.MarkerPacket
-import com.npg418.markerlib.marker.common.RemovePacket
-import com.npg418.markerlib.marker.common.SyncPacket
+import com.npg418.markerlib.client.ClientMarkers
+import com.npg418.markerlib.common.AddPacket
+import com.npg418.markerlib.common.MarkerPacket
+import com.npg418.markerlib.common.RemovePacket
+import com.npg418.markerlib.common.SyncPacket
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.level.ServerPlayer
 import net.minecraftforge.network.NetworkDirection

@@ -1,7 +1,7 @@
-package com.npg418.markerlib.marker.client.render
+package com.npg418.markerlib.client.render
 
-import com.npg418.markerlib.marker.common.Marker
-import com.npg418.markerlib.marker.common.MarkerIcon
+import com.npg418.markerlib.common.Marker
+import com.npg418.markerlib.common.MarkerIcon
 import net.minecraft.world.phys.Vec3
 import java.util.*
 

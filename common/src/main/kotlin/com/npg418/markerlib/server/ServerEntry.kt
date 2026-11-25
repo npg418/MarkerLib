@@ -1,8 +1,8 @@
-package com.npg418.markerlib.marker.server
+package com.npg418.markerlib.server
 
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
-import com.npg418.markerlib.marker.common.Marker
+import com.npg418.markerlib.common.Marker
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
 

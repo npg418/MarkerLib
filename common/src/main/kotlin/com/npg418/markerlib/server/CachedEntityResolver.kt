@@ -1,7 +1,7 @@
-package com.npg418.markerlib.marker.server
+package com.npg418.markerlib.server
 
 import com.mojang.brigadier.StringReader
-import com.npg418.markerlib.marker.common.DimensionalPosition
+import com.npg418.markerlib.common.DimensionalPosition
 import net.minecraft.commands.CommandSourceStack
 import net.minecraft.commands.arguments.EntityArgument
 import net.minecraft.commands.arguments.selector.EntitySelector

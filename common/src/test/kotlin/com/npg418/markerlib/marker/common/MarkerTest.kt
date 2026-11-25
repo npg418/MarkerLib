@@ -1,5 +1,7 @@
 package com.npg418.markerlib.marker.common
 
+import com.npg418.markerlib.common.Marker
+import com.npg418.markerlib.common.MarkerIcon
 import io.netty.buffer.Unpooled
 import net.minecraft.nbt.NbtOps
 import net.minecraft.network.FriendlyByteBuf

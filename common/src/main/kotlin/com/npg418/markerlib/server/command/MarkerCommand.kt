@@ -1,4 +1,4 @@
-package com.npg418.markerlib.marker.server.command
+package com.npg418.markerlib.server.command
 
 import com.mojang.brigadier.CommandDispatcher
 import net.minecraft.commands.CommandSourceStack

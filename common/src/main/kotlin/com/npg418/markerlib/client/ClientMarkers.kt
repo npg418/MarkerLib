@@ -1,6 +1,6 @@
-package com.npg418.markerlib.marker.client
+package com.npg418.markerlib.client
 
-import com.npg418.markerlib.marker.common.Marker
+import com.npg418.markerlib.common.Marker
 import java.util.*
 
 object ClientMarkers {

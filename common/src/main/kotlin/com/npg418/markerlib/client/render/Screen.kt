@@ -1,4 +1,4 @@
-package com.npg418.markerlib.marker.client.render
+package com.npg418.markerlib.client.render
 
 import com.npg418.markerlib.config.ClientConfig
 import net.minecraft.client.gui.GuiGraphics
